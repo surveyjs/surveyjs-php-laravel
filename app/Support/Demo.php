@@ -19,10 +19,10 @@ use Illuminate\Support\Str;
 final class Demo
 {
     /** The app title, where "SurveyJS" is already beside it: the catalog's browser title and the step pages' header */
-    public const TITLE = 'Backend Integration with PHP and Laravel';
+    public const TITLE = 'PHP Backend Integration with Laravel';
 
     /** The catalog header, next to the logo */
-    public const HEADER = 'Step-by-Step Backend Integration with PHP and Laravel';
+    public const HEADER = 'Step-by-Step PHP Backend Integration with Laravel';
 
     private static ?array $manifest = null;
 

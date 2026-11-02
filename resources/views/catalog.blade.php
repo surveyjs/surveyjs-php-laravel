@@ -7,12 +7,12 @@
         'Edit Forms in Survey Creator' => 'Survey Creator lets authors build and edit forms in your application. It works with the same form JSON schemas that Form Library displays to respondents. Your backend should load those schemas when the editor opens and save them when an author makes changes.',
         'Run Server-Side Workflows' => 'Some workflows need SurveyJS logic on the server. You may need to check a submission before storing it, find problems in a form JSON schema, create a PDF, or read answers from a document. These operations run in Node.js. A Node.js backend can run the components directly; other backends can call a Node.js service over HTTP.',
     ];
-    // Hero cards, by the section they link to: the label and the icon. The no-break space keeps the desktop line break
+    // Hero cards, by the section they link to: the label and the icon.
     $heroLinks = [
-        'Run Forms' => ['Run forms', 'preview'],
-        'Analyze Results with Dashboard' => ["See results in\u{A0}dashboard", 'graph'],
-        'Edit Forms in Survey Creator' => ['Edit forms in Survey Creator', 'embed-creator'],
-        'Run Server-Side Workflows' => ['Run SurveyJS on your server', 'server'],
+        'Run Forms' => ['Run Forms', 'preview'],
+        'Analyze Results with Dashboard' => ['Analyze Results with Dashboard', 'graph'],
+        'Edit Forms in Survey Creator' => ['Edit Forms in Survey Creator', 'embed-creator'],
+        'Run Server-Side Workflows' => ['Run Server-Side Workflows', 'server'],
     ];
     $steps = collect($manifest['steps'])->groupBy('section');
     // The manifest's licence reads "MIT", "Commercial" or "Commercial client", optionally followed by ", needs an AI provider"
@@ -83,18 +83,18 @@
                             <div class="flex flex-wrap gap-3">
                                 <span class="{{ $cardBadge }} {{ $licenceBadge[$licence($step)] }}">{{ $licence($step) }}</span>
                                 @if ($needsAi($step))
-                                    <span class="{{ $cardBadge }} bg-sjs-violet-10 text-sjs-violet">Needs an AI provider</span>
+                                    <span class="{{ $cardBadge }} bg-sjs-violet-10 text-sjs-violet">AI Provider Required</span>
                                 @endif
                             </div>
                             <div class="flex flex-col gap-3">
                                 <h3 class="text-sjs-para-lg font-semibold">{{ $step['title'] }}</h3>
-                                <p class="m-0 text-sjs-para-md text-sjs-fg-75">{{ $step['need'] }}</p>
+                                <p class="m-0 text-sjs-para-md text-sjs-fg-75"><strong>Use when: </strong>{{ $step['need'] }}</p>
                             </div>
                         </div>
                         <p class="m-0 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
-                            <a class="{{ $blackButton }}" href="{{ url($step['page']) }}">Run</a>
-                            <a class="{{ $whiteButton }}" href="{{ config('surveyjs.github') }}/blob/{{ $manifest['branch'] }}/{{ $step['files']['server'] ?? $step['files']['client'] }}" target="_blank">Source ↗&#xFE0E;</a>
-                            <a class="{{ $whiteButton }}" href="{{ \App\Support\Demo::docsUrl($step) }}" target="_blank">On the page ↗&#xFE0E;</a>
+                            <a class="{{ $blackButton }}" href="{{ url($step['page']) }}">Run Example</a>
+                            <a class="{{ $whiteButton }}" href="{{ config('surveyjs.github') }}/blob/{{ $manifest['branch'] }}/{{ $step['files']['server'] ?? $step['files']['client'] }}" target="_blank">View Source ↗&#xFE0E;</a>
+                            <a class="{{ $whiteButton }}" href="{{ \App\Support\Demo::docsUrl($step) }}" target="_blank">Read Guide ↗&#xFE0E;</a>
                         </p>
                     </article>
                 @endforeach
@@ -105,8 +105,8 @@
     <div class="border-t border-sjs-line">
         <div class="{{ $column }} py-12 md:py-16 xl:py-24">
             <div class="flex flex-col items-center justify-center gap-3 rounded-3xl bg-sjs-back-gray px-10 py-8 text-center md:flex-row">
-                <a class="{{ $whiteButton }}" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Integration Examples ↗&#xFE0E;</a>
-                <a class="{{ $whiteButton }}" href="https://surveyjs.io/use-cases" target="_blank">See SurveyJS in Action ↗&#xFE0E;</a>
+                <a class="{{ $whiteButton }}" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples ↗&#xFE0E;</a>
+                <a class="{{ $whiteButton }}" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases ↗&#xFE0E;</a>
             </div>
         </div>
     </div>

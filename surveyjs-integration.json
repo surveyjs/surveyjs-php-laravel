@@ -16,7 +16,7 @@
       "title": "Save Responses",
       "status": "done",
       "page": "/examples/save-response",
-      "need": "To collect responses, your backend needs an endpoint that accepts and stores answers.",
+      "need": "Your form needs to collect and store submitted answers.",
       "licence": "MIT",
       "endpoints": [
         "POST /api/responses"
@@ -39,7 +39,7 @@
       "title": "Load JSON Schemas, Variables, and Answers",
       "status": "done",
       "page": "/examples/load-definition-variables-data",
-      "need": "Your backend can provide the JSON schema, variables, and previous answers needed to prepare the form.",
+      "need": "Your form needs user-specific data or previously saved answers.",
       "licence": "MIT",
       "endpoints": [
         "GET /claim",
@@ -63,7 +63,7 @@
       "title": "Resume Progress",
       "status": "done",
       "page": "/examples/resume-progress",
-      "need": "With long forms, respondents may need to stop and return later. You can save their answers together with the form's UI state, which includes the current page and focused input field.",
+      "need": "Respondents need to complete a form across multiple sessions.",
       "licence": "MIT",
       "endpoints": [
         "GET /api/progress/{formId}",
@@ -87,7 +87,7 @@
       "title": "Store Files Separately",
       "status": "done",
       "page": "/examples/store-files",
-      "need": "A File Upload question can store file contents in the response as Base64 strings. This makes responses much larger. Alternatively, you can keep files in a separate storage.",
+      "need": "Your form allows respondents to upload files.",
       "licence": "MIT",
       "endpoints": [
         "POST /api/files",
@@ -111,7 +111,7 @@
       "title": "Load Choices from Web",
       "status": "done",
       "page": "/examples/choices-from-web",
-      "need": "Choice lists often come from data your application already stores, such as products or offices. Use the choicesByUrl property to load those options into a Dropdown, Checkboxes, or Radio Button Group question.",
+      "need": "Choice lists come from data such as products, users, or offices.",
       "licence": "MIT",
       "endpoints": [
         "GET /api/offices",
@@ -135,7 +135,7 @@
       "title": "Async Calculations and Validation",
       "status": "done",
       "page": "/examples/async-functions",
-      "need": "Some form logic needs information that only your backend has. For example, a validation rule may need to check whether an email address is already registered, or a calculation may need the shipping rate for a postcode.",
+      "need": "Calculations or validation rules depend on data from your server.",
       "licence": "MIT",
       "endpoints": [
         "GET /api/customers/exists",
@@ -159,7 +159,7 @@
       "title": "Use Relational Storage",
       "status": "done",
       "page": "/examples/relational-storage",
-      "need": "Storing each response as JSON is enough to preserve its answers. If you also need to query those answers with SQL or join them with other application data, copy the relevant values into database columns.",
+      "need": "You need to query answers with SQL or join them with other application data.",
       "licence": "MIT",
       "endpoints": [
         "POST /api/claims"
@@ -183,7 +183,7 @@
       "title": "Fill Forms Together",
       "status": "done",
       "page": "/examples/fill-together",
-      "need": "Several people may need to fill out the same record, such as a dispatcher and a technician completing a job sheet. Participants see each other's answers, focus, and cursors.",
+      "need": "Several people need to fill out the same record together.",
       "licence": "MIT",
       "endpoints": [
         "WS /ws/rooms/{recordId}"
@@ -209,7 +209,7 @@
       "title": "Analyze Results with Dashboard",
       "status": "done",
       "page": "/examples/dashboard",
-      "need": "Load the JSON schema and request the saved responses for that form. The backend should return the answers as a JSON array, which the client passes to Dashboard along with the schema.",
+      "need": "Users need to explore and analyze collected responses.",
       "licence": "Commercial client",
       "endpoints": [
         "GET /api/responses"
@@ -232,7 +232,7 @@
       "title": "Load and Save Form JSON Schemas",
       "status": "done",
       "page": "/examples/creator-load-save",
-      "need": "When the author clicks Save, Survey Creator calls saveSurveyFunc. Use this function to send the updated JSON schema to your backend.",
+      "need": "Users need to create or update forms in your application.",
       "licence": "Commercial client",
       "endpoints": [
         "GET /api/forms/{id}",
@@ -256,7 +256,7 @@
       "title": "Upload Files",
       "status": "done",
       "page": "/examples/creator-uploads",
-      "need": "Authors may need to add a logo, image, or file to a form. You can keep these files in your storage and save their URLs in the JSON schema to keep it small.",
+      "need": "Form authors need to add logos, images, or other files.",
       "licence": "Commercial client",
       "endpoints": [
         "POST /api/files"
@@ -278,7 +278,7 @@
       "title": "Translate with AI",
       "status": "done",
       "page": "/examples/ai-translation",
-      "need": "For multilingual forms, you can integrate AI in Survey Creator's Translations tab so that authors can translate titles, choices, and other form text semi-automatically.",
+      "need": "Authors need to translate forms into multiple languages quickly.",
       "licence": "Commercial client, needs an AI provider",
       "endpoints": [
         "POST /api/translate"
@@ -301,7 +301,7 @@
       "title": "Variable Presets",
       "status": "done",
       "page": "/examples/variable-presets",
-      "need": "Form logic may depend on variables supplied by your application, such as a customer's subscription plan. Authors need sample values to test that logic before the form is used. Variable presets allow them to do that by providing named sets of those values in Survey Creator.",
+      "need": "Authors need to test form logic with sample variable values in the Preview tab.",
       "licence": "Commercial client",
       "endpoints": [
         "GET /api/variable-presets/{formId}",
@@ -325,7 +325,7 @@
       "title": "Edit Forms Together",
       "status": "done",
       "page": "/examples/edit-together",
-      "need": "Several authors can work on the same form. Participants see each other's edits, selection, and cursors, and cannot edit survey elements that another participant is editing.",
+      "need": "Multiple authors need to edit the same form in real time.",
       "licence": "Commercial client",
       "endpoints": [
         "WS /ws/forms/{formId}"
@@ -351,7 +351,7 @@
       "title": "Validate Responses",
       "status": "done",
       "page": "/examples/validate-response",
-      "need": "Browser validation helps respondents correct their answers while filling out a form. Your API can also receive requests that bypass the form, so you need to repeat validation on the server before storing a response.",
+      "need": "Submitted answers must be checked on the server before they are saved.",
       "licence": "MIT",
       "endpoints": [
         "POST /api/responses"
@@ -374,7 +374,7 @@
       "title": "Lint JSON Schemas",
       "status": "done",
       "page": "/examples/lint-definition",
-      "need": "A form JSON schema can contain mistakes that stop its questions or logic from working as intended. For example, a condition may refer to a question that does not exist.",
+      "need": "You need to catch broken references and logic errors in form schemas.",
       "licence": "MIT",
       "endpoints": [
         "PUT /api/forms/{id}"
@@ -397,7 +397,7 @@
       "title": "Generate PDFs",
       "status": "done",
       "page": "/examples/server-pdf",
-      "need": "A backend workflow may need a PDF for an archive or email attachment. SurveyJS PDF Generator can create the document on the server without opening a browser.",
+      "need": "Your backend needs PDFs for archiving, email attachments, or other workflows.",
       "licence": "Commercial",
       "endpoints": [
         "GET /api/claims/{id}/pdf"
@@ -421,7 +421,7 @@
       "title": "Extract Responses from Documents",
       "status": "done",
       "page": "/examples/extract-from-paper",
-      "need": "Some responses arrive as completed paper forms, scans, or PDFs. AI Form Response Extractor can use your form JSON schema to read those documents and return answers in the same format as an online response.",
+      "need": "Completed forms arrive as paper scans, photos, or filled PDFs.",
       "licence": "MIT, needs an AI provider",
       "endpoints": [
         "POST /api/work-orders/extract"
