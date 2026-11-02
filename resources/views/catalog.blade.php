@@ -23,6 +23,7 @@
     // Site Button, medium: primary and tertiary neutral
     $blackButton = 'rounded-lg bg-sjs-fg px-6 py-3 text-center text-base/6 font-semibold text-white no-underline hover:bg-gray-700';
     $whiteButton = 'inline-block rounded-lg bg-white px-6 py-3 text-center text-base/6 font-semibold text-sjs-fg no-underline shadow-[inset_0_0_0_1px_var(--color-sjs-border)] hover:bg-sjs-back-gray';
+    $grayButton = 'rounded-lg bg-sjs-back-gray-2 px-6 py-3 text-center text-base/6 font-semibold text-sjs-fg no-underline hover:bg-sjs-line';
     $solidUnderline = 'underline [text-decoration-skip-ink:none] [text-underline-position:from-font]';
     $column = 'mx-auto max-w-sjs-content px-4 md:px-6';
     $number = 0;
@@ -103,11 +104,9 @@
     @endforeach
 
     <div class="border-t border-sjs-line">
-        <div class="{{ $column }} py-12 md:py-16 xl:py-24">
-            <div class="flex flex-col items-center justify-center gap-3 rounded-3xl bg-sjs-back-gray px-10 py-8 text-center md:flex-row">
-                <a class="{{ $whiteButton }}" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples ↗&#xFE0E;</a>
-                <a class="{{ $whiteButton }}" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases ↗&#xFE0E;</a>
-            </div>
+        <div class="{{ $column }} flex flex-col items-center justify-center gap-3 py-12 md:flex-row md:gap-6 md:py-16 xl:py-24">
+            <a class="{{ $blackButton }}" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples</a>
+            <a class="{{ $grayButton }}" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases</a>
         </div>
     </div>
 </main>
