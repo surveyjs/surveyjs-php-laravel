@@ -73,6 +73,14 @@
     /* The design's content column: 1080px between 160px gutters at 1400 */
     --container-sjs-content: 67.5rem;
 
+    /* The catalog's logo row: the track holds the logos twice, so moving it by half loops without a jump */
+    --animate-sjs-marquee: sjs-marquee 40s linear infinite;
+    @keyframes sjs-marquee {
+        to {
+            transform: translateX(-50%);
+        }
+    }
+
     /* The adapter's host contract (survey-core/themes/adapters/tailwind4.css): the form's brand, text and
        error colour come from the values above. Muted text, borders and inputs follow the gray scale through
        the adapter's Tailwind defaults (gray-500, gray-200, gray-300). */

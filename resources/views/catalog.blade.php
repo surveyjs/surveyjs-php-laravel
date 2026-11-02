@@ -23,7 +23,10 @@
     // Site Button, medium: primary and tertiary neutral
     $blackButton = 'rounded-lg bg-sjs-fg px-6 py-3 text-center text-base/6 font-semibold text-white no-underline hover:bg-gray-700';
     $whiteButton = 'inline-block rounded-lg bg-white px-6 py-3 text-center text-base/6 font-semibold text-sjs-fg no-underline shadow-[inset_0_0_0_1px_var(--color-sjs-border)] hover:bg-sjs-back-gray';
-    $grayButton = 'rounded-lg bg-sjs-back-gray-2 px-6 py-3 text-center text-base/6 font-semibold text-sjs-fg no-underline hover:bg-sjs-line';
+    // Site Button, large from tablets up: the footer's primary and secondary brand buttons
+    $footerButton = 'rounded-lg px-6 py-3 text-center text-base/6 font-semibold no-underline md:px-12 md:py-5 md:text-2xl/6';
+    // The footer's logos, by file (images/site/stack-*.svg)
+    $stackLogos = ['nextjs', 'nodejs', 'aspnet', 'php', 'wordpress', 'model', 'postgresql', 'mongodb', 'python'];
     $solidUnderline = 'underline [text-decoration-skip-ink:none] [text-underline-position:from-font]';
     $column = 'mx-auto max-w-sjs-content px-4 md:px-6';
     $number = 0;
@@ -103,10 +106,26 @@
         </section>
     @endforeach
 
-    <div class="border-t border-sjs-line">
-        <div class="{{ $column }} flex flex-col items-center justify-center gap-3 py-12 md:flex-row md:gap-6 md:py-16 xl:py-24">
-            <a class="{{ $blackButton }}" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples</a>
-            <a class="{{ $grayButton }}" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases</a>
+    {{-- Phones and tablets: stacked, full-width buttons. Desktops: one row --}}
+    <div class="flex flex-col items-center gap-12 border-t border-sjs-line px-4 pt-16 pb-24 md:px-6 md:pt-24 md:pb-[120px] xl:pb-40">
+        <div class="relative w-full max-w-sjs-content overflow-hidden py-4" aria-hidden="true">
+            <div class="flex w-max animate-sjs-marquee gap-6 pr-6 motion-reduce:animate-none md:gap-12 md:pr-12">
+                @foreach ([...$stackLogos, ...$stackLogos] as $logo)
+                    {{-- Figma's cell: the ASP.NET art is shorter than it, the Python art smaller --}}
+                    <span class="flex size-16 shrink-0 items-center justify-center md:size-20">
+                        <img src="{{ asset("images/site/stack-{$logo}.svg") }}" @class(['h-auto', 'w-[91.7%]' => $logo === 'python', 'w-full' => $logo !== 'python']) alt="">
+                    </span>
+                @endforeach
+            </div>
+            <div class="absolute inset-y-0 left-0 w-16 bg-linear-to-r from-white to-transparent md:w-20"></div>
+            <div class="absolute inset-y-0 right-0 w-16 bg-linear-to-l from-white to-transparent md:w-20"></div>
+        </div>
+        <div class="flex w-full flex-col items-center gap-12 md:gap-16">
+            <p class="m-0 w-full max-w-sjs-content text-center text-sjs-para-lg font-medium">SurveyJS works with any backend, so you can build a complete survey management system using your preferred technologies. Let users create, edit, and run surveys, collect responses, and analyze results with interactive charts.</p>
+            <div class="flex w-full max-w-sjs-content flex-col gap-3 xl:flex-row xl:justify-center xl:gap-8">
+                <a class="{{ $footerButton }} bg-sjs text-white hover:bg-sjs-dim" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples</a>
+                <a class="{{ $footerButton }} bg-sjs-15 text-sjs-fg hover:bg-sjs-15-dim" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases</a>
+            </div>
         </div>
     </div>
 </main>
