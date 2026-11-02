@@ -2,10 +2,10 @@
      (Figma General, page "Backend Integration examples page + demo"; desktop 1400, tablet 900, mobile 375) --}}
 @php
     $sections = [
-        'Run Forms' => 'SurveyJS Form Library displays a form using a JSON schema and collects the respondent\'s answers. Start integration by adding an endpoint that saves those answers. You can then load data from the server, save progress in unfinished forms, and add the other features described below if your application needs them.',
-        'Analyze Results with Dashboard' => 'Once you have collected responses, use SurveyJS Dashboard to display and analyze them. Dashboard runs in the browser and uses the form JSON schema to choose a chart for each question automatically.',
-        'Edit Forms in Survey Creator' => 'Survey Creator lets authors build and edit forms in your application. It works with the same form JSON schemas that Form Library displays to respondents. Your backend should load those schemas when the editor opens and save them when an author makes changes.',
-        'Run Server-Side Workflows' => 'Some workflows need SurveyJS logic on the server. You may need to check a submission before storing it, find problems in a form JSON schema, create a PDF, or read answers from a document. These operations run in Node.js. A Node.js backend can run the components directly; other backends can call a Node.js service over HTTP.',
+        'Run Forms' => 'SurveyJS Form Library displays forms in the browser. Start with a PHP endpoint that saves submitted answers, then add the workflows your application needs.',
+        'Analyze Results with Dashboard' => 'SurveyJS Dashboard lets users analyze responses with interactive charts in the browser. Your PHP backend supplies the saved responses.',
+        'Edit Forms in Survey Creator' => 'Survey Creator lets users build and edit forms in the browser. Your PHP backend loads and saves form JSON schemas and checks that users have permission to make changes.',
+        'Run Server-Side Workflows' => 'Use a Node.js service alongside your PHP application to run SurveyJS workflows: validate responses, check form schemas, generate PDFs, and extract answers from documents.',
     ];
     // Hero cards, by the section they link to: the label and the icon.
     $heroLinks = [
