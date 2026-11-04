@@ -103,6 +103,32 @@
     }
 }
 
+/* Figma "scrollbar" (General, node 6467:6435) on everything that scrolls in a step page's side panel: the
+   description, the requests log and its request and response bodies, the read-outs and the stored data.
+   12px across, a 4px round thumb 4px in from the edges (sjs2/color/utility/scrollbar), no track.
+   The tab row is left out: it hides its native scrollbar and draws its own thumb (page-tabs.js). */
+#side-panel :not(#panel-tabs)::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+#side-panel :not(#panel-tabs)::-webkit-scrollbar-track,
+#side-panel :not(#panel-tabs)::-webkit-scrollbar-corner {
+    background: transparent;
+}
+#side-panel :not(#panel-tabs)::-webkit-scrollbar-thumb {
+    border: 4px solid transparent;
+    border-radius: 9999px;
+    background: var(--color-sjs-scrollbar) padding-box;
+}
+/* Firefox has no ::-webkit-scrollbar: the closest it allows is a thin bar in the same colour.
+   Only there, since Chromium ignores the rules above once scrollbar-width or scrollbar-color is set. */
+@supports not selector(::-webkit-scrollbar) {
+    #side-panel :not(#panel-tabs) {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-sjs-scrollbar) transparent;
+    }
+}
+
 /* Demo only: the highlights in a step page's Under the hood panel (resources/js/page-tabs.js). Scoped to #hood: the catalog has none. */
 #hood [data-hood-current='true'] {
     box-shadow: inset 3px 0 0 var(--color-sjs);
