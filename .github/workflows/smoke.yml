@@ -5,7 +5,7 @@
 #   jobs:
 #     smoke:
 #       needs: deploy
-#       uses: surveyjs/surveyjs-php/.github/workflows/smoke.yml@master
+#       uses: surveyjs/surveyjs-php-laravel/.github/workflows/smoke.yml@master
 #       with:
 #         base-url: https://surveyjs-php.demos.surveyjs.io
 #         relay-url: wss://surveyjs-php.demos.surveyjs.io
@@ -89,8 +89,8 @@ jobs:
       # Called from another repository's pipeline, check out this one (its default branch)
       - uses: actions/checkout@v4
         with:
-          repository: surveyjs/surveyjs-php
-          ref: ${{ github.repository == 'surveyjs/surveyjs-php' && github.sha || '' }}
+          repository: surveyjs/surveyjs-php-laravel
+          ref: ${{ github.repository == 'surveyjs/surveyjs-php-laravel' && github.sha || '' }}
 
       - uses: actions/setup-node@v4
         with:

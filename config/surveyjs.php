@@ -48,7 +48,7 @@ return [
         'ai_calls_per_day' => 20,
     ],
 
-    'github' => 'https://github.com/surveyjs/surveyjs-php',
+    'github' => 'https://github.com/surveyjs/surveyjs-php-laravel',
 
     // The Server Integration docs. Step pages link to <docs>#<anchor> (anchor: surveyjs-integration.json).
     // Change it here when the docs move; nothing else holds this URL.

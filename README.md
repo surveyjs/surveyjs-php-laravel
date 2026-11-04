@@ -12,8 +12,8 @@ This is the PHP code behind [Integrate SurveyJS with PHP](https://surveyjs.io/do
 You need PHP 8.3 or later (with `pdo_sqlite` and `fileinfo`), Composer, and Node.js 22 or later. Use at least 8.3.36, 8.4.27 or 8.5.12: earlier releases are open to remote code execution (CVE-2026-109618, CVE-2026-109619).
 
 ```bash
-git clone https://github.com/surveyjs/surveyjs-php.git
-cd surveyjs-php
+git clone https://github.com/surveyjs/surveyjs-php-laravel.git
+cd surveyjs-php-laravel
 composer setup     # install, .env, app key, SQLite database with demo data, npm install, npm run build
 composer start     # http://localhost:8000, serving the built assets
 ```

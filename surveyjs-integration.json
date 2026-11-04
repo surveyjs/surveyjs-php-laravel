@@ -2,7 +2,7 @@
   "contract": "server-integration-v4",
   "platform": "php",
   "framework": "laravel",
-  "repo": "surveyjs/surveyjs-php",
+  "repo": "surveyjs/surveyjs-php-laravel",
   "branch": "master",
   "live": "https://surveyjs-php.demos.surveyjs.io",
   "surveyjsVersion": "3.2.3",
