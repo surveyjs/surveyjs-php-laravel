@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Translate form text with AI and let authors review the results. Your backend sends titles, choices, and other text to your chosen provider, keeping its API key on the server.</p>
+@endsection
+
 @section('theme', 'creator')
 
 @section('banner')

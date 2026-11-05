@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Test conditional logic with saved sets of sample variables in Preview. Switch between scenarios, such as basic and premium subscription plans, to check which questions appear without changing the form schema.</p>
+@endsection
+
 @section('theme', 'creator')
 
 @section('try')

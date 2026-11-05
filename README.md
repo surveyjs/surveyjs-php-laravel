@@ -105,7 +105,7 @@ Each step is two or three files you can read on their own:
 
 - `routes/examples/<slug>.php`: the step's routes, the server code the page shows. `routes/examples.php` loads them in page order. They run in the stateless `api` group, so `fetch()` needs no CSRF token.
 - `shared/client/<slug>.js`: the step's client code, a plain ES module. Vite bundles it as an entry point (`vite.config.js`).
-- `resources/views/examples/<slug>.blade.php`: the step page: the "Try this" list and the component. The explanation is in [the docs](#the-steps), not on the page.
+- `resources/views/examples/<slug>.blade.php`: the step page: its description, the "Try this" list and the component. The full explanation is in [the docs](#the-steps).
 - The relays are `app/Relay/FillRelay.php` (Fill Forms Together) and `app/Relay/EditRelay.php` (Edit Forms Together), started by `php artisan relay:fill` and `relay:edit`.
 - `app/Integration/`: small helpers some routes call, so the code the page shows stays about SurveyJS. They aren't demo code:
   - `StoredJson` (`save-response`, `load-definition-variables-data`, `resume-progress`, `relational-storage`, `creator-load-save`, `variable-presets`, `validate-response`, `lint-definition`): stores and returns JSON exactly as it arrived.
@@ -115,6 +115,19 @@ Each step is two or three files you can read on their own:
   To copy one of those steps, copy its route file and the helpers it imports (`use App\Integration\…`).
 
 The code the Server Integration docs show is cut from these files between `// #region sjs:<slug>.server` (or `.client`) and `// #endregion`. `surveyjs-integration.json` lists every step's files and regions; `composer check` verifies them, and `composer contract` runs the shared contract test (`shared/contract-tests/run.mjs`) against a fresh database, the app and both relays. `composer smoke` runs a faster check per step (`tests/smoke/run.mjs`), which also works against a deployed copy. `npm run test:browser` runs the step pages in Chromium (`tests/browser/`, Playwright) against the app on port 8000, and starts it when nothing answers there (`npx playwright install chromium` once).
+
+### Editing example descriptions
+
+Edit `@section('description')` in `resources/views/examples/<slug>.blade.php` to set the text shown below the example title in the Description panel. Each section contains a short feature summary and can include multiple paragraphs, links, and other HTML or Blade markup:
+
+```blade
+@section('description')
+    <p>Your custom description.</p>
+    <p>More details with <strong>formatting</strong>.</p>
+@endsection
+```
+
+The shared layout (`resources/views/layouts/example.blade.php`) renders this section. When adding an example, include a `description` section in its view. The catalog cards still use `need` from `surveyjs-integration.json` for their short "Use when" text.
 
 ### Storing JSON exactly as it arrives
 

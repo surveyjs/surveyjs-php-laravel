@@ -7,6 +7,10 @@
 @endphp
 @extends('layouts.example')
 
+@section('description')
+    <p>Prepare forms with schemas, user context, and saved answers from your backend. Use variables to personalize form text and logic, or restore saved answers so users can edit an existing record.</p>
+@endsection
+
 @section('head')
     @if ($optionA)
         {{-- Option A: the server rendered the definition into the page, escaped for an inline script --}}

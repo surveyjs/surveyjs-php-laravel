@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Catch broken references and logic errors in form schemas before saving. Findings are returned to Survey Creator so authors can fix issues, such as conditions referencing missing questions, before respondents encounter them.</p>
+@endsection
+
 @section('theme', 'creator')
 
 @section('banner')

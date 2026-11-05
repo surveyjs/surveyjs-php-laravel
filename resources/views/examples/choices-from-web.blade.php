@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Load choice lists from APIs and update them when related answers change. For example, changing a region reloads the office list with matching options from your backend.</p>
+@endsection
+
 @section('try')
     <li>In <strong>Find an office</strong>, change the <strong>Region</strong>: a new <code>GET /api/offices?region=…</code> appears in <strong>Requests</strong>, and the Office list reloads.</li>
     <li>Open the <strong>Country</strong> list: it comes from <code>GET /api/countries</code>. <strong>Requests</strong> shows <code>X-Demo-Cache</code>: <em>miss</em> when the server fetched restcountries.com, <em>hit</em> from the 24-hour cache, <em>fallback</em> when the service failed and the bundled list was served (demo-only header).</li>

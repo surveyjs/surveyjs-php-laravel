@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Explore collected responses through interactive charts and filters. Use the form schema to choose charts automatically, and load a date range of responses from your backend.</p>
+@endsection
+
 @section('theme', 'dashboard')
 
 @section('try')

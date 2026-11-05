@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Save answers and form state automatically so respondents can continue later. Returning respondents get their saved answers, current page, and focused field back, making longer forms easier to finish.</p>
+@endsection
+
 @section('try')
     <li>Type in a few fields. <strong>Requests</strong> shows one <code>PUT /api/progress/onboarding</code> per pause, not one per keystroke, and <strong>Progress</strong> at the top of <strong>Requests</strong> says when it saved.</li>
     <li>Go to the next page: the page change saves too.</li>

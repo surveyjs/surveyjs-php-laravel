@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Store uploads separately and save file references with responses. This keeps response documents small and lets your backend control access when users preview private files.</p>
+@endsection
+
 @section('try')
     <li>Add one or two images or PDFs to <strong>Receipts</strong>. <strong>Requests</strong> shows one <code>POST /api/files</code>; the size line at the top of <strong>Requests</strong> compares the response size with Base64 against the size with IDs.</li>
     <li><strong>Data</strong> lists the <code>files</code> by ID, name, and type. Press <strong>Complete</strong>: the stored response holds IDs, not contents.</li>

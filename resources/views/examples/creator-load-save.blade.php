@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Load and save form schemas as authors edit in Survey Creator. Changes can be saved automatically, with editing permissions checked by the backend and save errors reported to the author.</p>
+@endsection
+
 {{-- "Open the form" (?form) renders the saved definition with the Form Library, so it loads the form theme --}}
 @section('theme', request()->has('form') ? 'survey' : 'creator')
 

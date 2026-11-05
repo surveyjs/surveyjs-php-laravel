@@ -4,6 +4,10 @@
 @endphp
 @extends('layouts.example')
 
+@section('description')
+    <p>Let multiple respondents fill out the same record together in real time. Answers, focus, and cursors are shared between participants, so teams can coordinate on a job sheet or similar form.</p>
+@endsection
+
 @section('head')
     <script>window.SURVEYJS_PAGE.record = {{ Js::from((string) $record) }};</script>
 @endsection

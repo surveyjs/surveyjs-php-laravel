@@ -88,8 +88,8 @@
             <div id="panel-description" role="tabpanel" aria-labelledby="panel-tab-description" class="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-12 pt-8 md:px-5 lg:px-6">
                 <div class="space-y-2">
                     <h2 class="text-2xl font-bold text-gray-900 sm:text-3xl">{{ $step['title'] }}</h2>
-                    <p><strong>Use when: </strong>{{ $step['need'] }}</p>
-                    <p><a class="text-sjs-dark underline" href="{{ \App\Support\Demo::docsUrl($step) }}" target="_blank">Read this step in the docs</a></p>
+                    <div class="space-y-2">@yield('description')</div>
+                    <p><a class="text-sjs-dark underline" href="{{ \App\Support\Demo::docsUrl($step) }}" target="_blank">Documentation</a></p>
                 </div>
 
                 <section class="space-y-3 rounded-lg border border-gray-200 bg-white p-5">

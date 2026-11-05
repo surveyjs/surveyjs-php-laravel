@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Let authors upload logos and images, storing their URLs in form schemas. The same upload endpoint can handle respondent files, and private assets can be served through a download endpoint that checks access.</p>
+@endsection
+
 @section('theme', 'creator')
 
 @section('try')

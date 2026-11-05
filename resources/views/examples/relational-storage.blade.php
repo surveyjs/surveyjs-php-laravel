@@ -3,6 +3,10 @@
 @endphp
 @extends('layouts.example')
 
+@section('description')
+    <p>Copy answers into database columns for SQL queries, preserving the original JSON. Stable answer keys keep the mapping intact when questions are renamed, and the saved schema version helps interpret older responses.</p>
+@endsection
+
 @section('try')
     <li>Fill out the <strong>v1</strong> form and press <strong>Complete</strong>. <strong>Data</strong> shows the <code>responses</code> row with <code>definition_version: "v1"</code>, and the <code>claims</code> row with <code>customer_email</code> and <code>amount</code> filled.</li>
     <li>Switch the <strong>JSON schema</strong> to <strong>v2</strong>: the questions are renamed (<code>contact_email</code>, <code>claimed_total</code>) and moved into panels. Submit again: the same columns fill.</li>

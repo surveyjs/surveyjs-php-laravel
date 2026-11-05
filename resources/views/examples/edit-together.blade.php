@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Let multiple authors work on the same form in real time. Participants see each other's edits and cursors, with elements locked during editing to prevent conflicting changes.</p>
+@endsection
+
 @section('theme', 'creator')
 
 @section('try')

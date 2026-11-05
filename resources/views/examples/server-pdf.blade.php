@@ -3,6 +3,10 @@
 @endphp
 @extends('layouts.example')
 
+@section('description')
+    <p>Generate PDFs on the server for archives, email attachments, or downloads. Use a form schema and optional saved answers to produce a document without opening a browser.</p>
+@endsection
+
 @section('banner')
     <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
         PDF Generator is commercial, and the pinned SurveyJS service never calls <code>setLicenseKey()</code>, so its PDFs carry the SurveyJS alert banner even when you set a licence key.

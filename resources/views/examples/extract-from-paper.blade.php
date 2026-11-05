@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Extract answers from scans and PDFs into draft forms for review. The extractor uses your form schema to return structured answers and confidence information, highlighting values that need checking before submission.</p>
+@endsection
+
 @section('banner')
     @unless (config('surveyjs.extraction.provider') || config('surveyjs.extraction.openai_api_key') || config('surveyjs.extraction.anthropic_api_key'))
         <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">

@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Validate submitted answers against the form schema before saving them. The backend checks required fields, value types, and allowed choices, even for requests that bypass the form's browser validation.</p>
+@endsection
+
 @section('banner')
     @include('examples.partials.service-banner', ['switch' => 'VALIDATE_RESPONSES', 'on' => config('surveyjs.validate_responses')])
 @endsection

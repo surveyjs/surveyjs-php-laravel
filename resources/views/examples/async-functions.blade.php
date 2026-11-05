@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Use backend data in calculations and validation, such as checking email availability. The form requests the needed information and updates its calculations or error messages when the server responds.</p>
+@endsection
+
 @section('try')
     <li>Type <code>taken@example.com</code> as the email and leave the field: after <code>GET /api/customers/exists</code> returns, the form shows "This email is already registered".</li>
     <li>Type any other email: the same request returns <code>{"exists": false}</code> and the error goes away.</li>

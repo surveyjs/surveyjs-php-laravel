@@ -1,5 +1,9 @@
 @extends('layouts.example')
 
+@section('description')
+    <p>Send completed form responses to your backend and store them as JSON. The server returns the saved response's ID to confirm success.</p>
+@endsection
+
 @section('try')
     <li>Fill out the form: <strong>Requests</strong> stays empty while you type. The JSON schema is a constant in <code>shared/client/save-response.js</code>.</li>
     <li>Press <strong>Complete</strong>. Exactly one <code>POST /api/responses</code> appears: open <strong>Requests</strong> and expand it to see the posted body and the <code>201</code> answer, <code>{"id": …}</code>.</li>
