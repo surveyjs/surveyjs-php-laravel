@@ -115,10 +115,10 @@
                     <ul id="notes" hidden class="m-0 list-none space-y-1 p-0 text-sm"></ul>
                 </div>
                 <div class="flex shrink-0 items-center justify-end gap-3 border-b border-gray-100 px-4 py-1.5 text-xs text-gray-500">
-                    <label class="flex items-center gap-1"><input id="show-demo-requests" type="checkbox"> show demo requests</label>
-                    <button id="clear-requests" type="button" class="cursor-pointer border-0 bg-transparent p-0 text-xs text-gray-500 underline [font-family:inherit]">clear</button>
+                    <label class="flex items-center gap-1"><input id="show-demo-requests" type="checkbox">Show demo requests</label>
+                    <button id="clear-requests" type="button" class="cursor-pointer border-0 bg-transparent p-0 text-xs text-gray-500 underline [font-family:inherit]">Clear</button>
                 </div>
-                <p id="requests-empty" class="px-4 py-3 text-sm text-gray-400">No requests yet.</p>
+                <p id="requests-empty" class="px-4 py-3 text-sm text-gray-400">No requests</p>
                 <ol id="requests" class="m-0 min-h-0 flex-1 list-none divide-y divide-gray-100 overflow-y-auto p-0 font-mono text-xs"></ol>
             </section>
 

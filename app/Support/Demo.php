@@ -262,7 +262,7 @@ final class Demo
         }
         $path = RoomKey::snapshotPath(RoomKey::for($request->attributes->get('demo_sid'), $id), $relay);
 
-        return is_file($path) ? json_decode((string) file_get_contents($path)) : 'No snapshot yet: nobody has joined the room';
+        return is_file($path) ? json_decode((string) file_get_contents($path)) : 'No room data';
     }
 
     private static function rowCounts(): array

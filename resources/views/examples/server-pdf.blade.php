@@ -26,7 +26,10 @@
                 <button type="button" data-claim="{{ $id }}" class="cursor-pointer rounded bg-sjs px-3 py-1.5 font-semibold text-white">Download PDF</button>
             </li>
         @empty
-            <li class="px-4 py-3 text-sm text-gray-500">No claims yet: submit one in Use Relational Storage.</li>
+            <li class="px-4 py-3 text-sm text-gray-500">
+                <span class="block">No claims</span>
+                <a href="{{ route('example', 'relational-storage') }}" class="mt-2 inline-block text-sjs-dark underline">Submit a claim</a>
+            </li>
         @endforelse
     </ul>
 @endsection

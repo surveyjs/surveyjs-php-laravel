@@ -33,6 +33,8 @@ translation.setSelectedLocales(["es"]);
 // Demo only: show the server's message when translation is off or fails
 onRequest(async ({ url, status }) => {
   if (url === "/api/translate" && status !== 200) {
-    note(status === 501 ? "501: Set AI_API_KEY to enable translation (see .env.example)." : `POST /api/translate answered ${status}.`, "error");
+    note(status === 501
+      ? "AI translation is unavailable. Configure AI_API_KEY to enable it."
+      : "AI translation failed. Please try again.", "error");
   }
 });

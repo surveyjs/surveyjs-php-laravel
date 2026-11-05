@@ -23,25 +23,38 @@ const recordId = new URLSearchParams(location.search).get("record") ?? "";
 const survey = mountSurvey(await createSurvey(recordId));
 
 // Saving the finished response is in save-response: post survey.data, which holds answers only
-survey.onComplete.add(async (sender) => {
-  await fetch("/api/responses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ formId: "claim", data: sender.data })
-  });
+let savedResponseId = null;
+survey.onComplete.add(async (sender, options) => {
+  options.showSaveInProgress();
+  try {
+    const response = await fetch("/api/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ formId: "claim", data: sender.data })
+    });
+    if (!response.ok) throw new Error("Save failed");
+    const { id } = await response.json();
+    if (!Number.isInteger(id) || id < 1) throw new Error("Missing response ID");
+    savedResponseId = id;
+    options.showSaveSuccess();
+  } catch {
+    options.showSaveError("Couldn't save the response. Please try again.");
+  }
 });
 
 // Demo only: show that the stored response carries no variables
-let completed = false;
-survey.onComplete.add(() => { completed = true; });
 onStored((stored) => {
-  const row = stored.responses?.[0];
-  if (!completed || !row) return;
-  completed = false;
+  const row = stored.responses?.find((response) => response.id === savedResponseId);
+  if (!row) return;
+  savedResponseId = null;
   const keys = Object.keys(row.data ?? {});
   const leaked = keys.filter((key) => ["user", "plan", "variables"].includes(key));
   note(leaked.length
     ? `Response #${row.id} contains ${leaked.join(", ")}: variables were saved.`
-    : `Response #${row.id} stores ${keys.join(", ")}: no variables, only answers.`, leaked.length ? "error" : "ok");
+    : `Response #${row.id} saved. Only submitted answers were stored; form variables were excluded.`, leaked.length ? "error" : "ok");
 });
-document.getElementById("start-over")?.addEventListener("click", () => survey.clear(false, true));
+
+document.getElementById("start-over")?.addEventListener("click", () => {
+  savedResponseId = null;
+  survey.clear(false, true);
+});

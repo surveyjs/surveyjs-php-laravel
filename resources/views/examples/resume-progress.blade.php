@@ -5,7 +5,7 @@
 @endsection
 
 @section('try')
-    <li>Type in a few fields. <strong>Requests</strong> shows one <code>PUT /api/progress/onboarding</code> per pause, not one per keystroke, and <strong>Progress</strong> at the top of <strong>Requests</strong> says when it saved.</li>
+    <li>Type in a few fields. <strong>Requests</strong> shows one <code>PUT /api/progress/onboarding</code> per pause, not one per keystroke, and the status at the top of <strong>Requests</strong> says when progress was saved.</li>
     <li>Go to the next page: the page change saves too.</li>
     <li>Type a letter, then switch to another browser tab and come back at once: the <code>PUT</code> was flushed when the tab was hidden.</li>
     <li>Press <strong>Reload page</strong>: you are back on the same page, in the same input, with your answers.</li>
@@ -21,5 +21,5 @@
 @endsection
 
 @section('readouts')
-    <p class="text-sm text-gray-700"><span class="font-semibold">Progress:</span> <span data-show="saved"></span></p>
+    <p data-show="saved" class="text-sm text-gray-700"></p>
 @endsection

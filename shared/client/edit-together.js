@@ -66,10 +66,10 @@ collab.onRecordChanged.add((_, { record }) => addToHistory([record]));
 setStoredQuery({ room: formId });
 collab.setStatus("connecting");
 ws.addEventListener("message", (e) => { if (JSON.parse(e.data).type === "init") collab.setStatus("connected"); });
-ws.addEventListener("open", () => note(`Connected to the edit relay as ${userName}.`, "ok"));
+ws.addEventListener("open", () => note(`Connected to the session as ${userName}.`, "ok"));
 ws.addEventListener("close", () => {
   collab.setStatus("closed");
   note(page.user?.isEditor
-    ? "The relay closed the connection. Is it running? Start it with `composer edit-relay` (or `php artisan relay:edit`), then reload."
-    : "Only editors may join: the relay refuses viewers and signed-out visitors. Reload to sign in as Alice.", "error");
+    ? "Collaboration disconnected. Check that the relay is running, then reload."
+    : "Editor access is required to join this session. Reload to continue as Alice.", "error");
 });

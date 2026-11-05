@@ -13,8 +13,12 @@ creator.saveSurveyFunc = async (saveNo, callback) => {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(creator.JSON)
-  });
-  callback(saveNo, res.ok);
+  }).catch(() => null);
+  callback(saveNo, Boolean(res?.ok));
+  if (!res?.ok) {
+    const report = res ? await res.json().catch(() => null) : null;
+    creator.notify(report?.error ?? "Couldn't save the form schema. Please try again.", "error");
+  }
 };
 
 // #region sjs:creator-uploads.client
@@ -22,12 +26,23 @@ creator.saveSurveyFunc = async (saveNo, callback) => {
 creator.onUploadFile.add(async (_, options) => {
   const body = new FormData();
   options.files.forEach(file => body.append("files[]", file));   // POST /api/files; "files[]" for PHP
-  const [id] = await fetch("/api/files", { method: "POST", body }).then(r => r.json());
-  options.callback("success", `/api/files/${id}`);                // the endpoint returns ids: the definition keeps a URL
+  const response = await fetch("/api/files", { method: "POST", body }).catch(() => null);
+  const ids = response?.ok ? await response.json().catch(() => null) : null;
+  if (!Array.isArray(ids) || ids.length !== options.files.length || typeof ids[0] !== "string" || !ids[0]) return options.callback("error");
+  options.callback("success", `/api/files/${encodeURIComponent(ids[0])}`);   // the definition keeps a URL
 });
 // #endregion
 
 mountCreator(creator);
 
 // Demo only
-creator.onUploadFile.add(() => setTimeout(() => note("The logo is stored by POST /api/files; the JSON schema keeps its URL, not Base64. See the Data tab.", "ok"), 1500));
+creator.onUploadFile.add((_, options) => {
+  const callback = options.callback;
+  const label = options.propertyName === "logo" || options.elementType === "header" ? "Logo" : "File";
+  options.callback = (status, url) => {
+    callback(status, url);
+    note(status === "success"
+      ? `${label} uploaded. The form schema now references its URL.`
+      : `Couldn't upload the ${label.toLowerCase()}. Please try again.`, status === "success" ? "ok" : "error");
+  };
+});

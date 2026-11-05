@@ -17,6 +17,6 @@ async function openPdf(id) {
 // Demo only
 for (const button of document.querySelectorAll("[data-claim]")) {
   button.addEventListener("click", () => openPdf(button.dataset.claim)
-    .then(() => note(`Claim #${button.dataset.claim}: the PDF opened in a new tab.`, "ok"))
+    .then(() => note(`PDF for claim #${button.dataset.claim} opened in a new tab.`, "ok"))
     .catch((e) => note(`Claim #${button.dataset.claim}: ${e.message}`, "error")));
 }

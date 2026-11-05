@@ -17,5 +17,5 @@
 @endsection
 
 @section('readouts')
-    <p class="text-sm text-gray-700" data-show="sizes">Add a file to compare the response sizes.</p>
+    <p class="text-sm text-gray-700" data-show="sizes">Upload a file to compare response sizes.</p>
 @endsection

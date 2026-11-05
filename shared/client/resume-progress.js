@@ -34,11 +34,16 @@ document.addEventListener("visibilitychange", () => {
 
 // Demo only: the "Saved" indicator, and the reload and start-over buttons
 setStoredQuery({ key: formId });
-show("saved", saved ? "Restored the saved progress" : "Nothing saved yet");
+show("saved", saved ? "Your saved progress has been restored" : "No saved progress");
 onRequest(({ method, url, status }) => {
-  if (method === "PUT" && url.startsWith("/api/progress/") && status === 204) show("saved", `Saved ${new Date().toLocaleTimeString()}`);
+  if (method !== "PUT" || !url.startsWith("/api/progress/")) return;
+  show("saved", status === 204
+    ? `Progress saved at ${new Date().toLocaleTimeString()}`
+    : "Couldn't save progress. Please try again.");
 });
-survey.onValueChanged.add(() => show("saved", "Typing… saves after a pause"));
+const showPendingProgress = () => show("saved", "Changes will be saved automatically");
+survey.onValueChanged.add(showPendingProgress);
+survey.onCurrentPageChanged.add(showPendingProgress);
 document.getElementById("reload")?.addEventListener("click", () => {
   saveProgress.flush();
   setTimeout(() => location.reload(), 300);

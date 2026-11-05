@@ -39,10 +39,10 @@ ws.addEventListener("message", (e) => {
 // Demo only: connection status, and the stored panel follows this room
 setStoredQuery({ room: recordId });
 show("room", `Room ${recordId} · you are ${userName}`);
-ws.addEventListener("open", () => note(`Connected to the relay as ${userName}.`, "ok"));
+ws.addEventListener("open", () => note(`Connected to the session as ${userName}.`, "ok"));
 ws.addEventListener("close", () => {
   collab?.apply({ type: "status", status: "closed" });
   note(page.user
-    ? "The relay closed the connection. Is it running? Start it with `composer relay` (or `php artisan relay:fill`), then reload."
-    : "The relay refuses signed-out visitors. Pick a demo user and reload.", "error");
+    ? "Collaboration disconnected. Check that the relay is running, then reload."
+    : "Choose a demo user and reload to join the session.", "error");
 });

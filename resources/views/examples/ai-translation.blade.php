@@ -9,7 +9,7 @@
 @section('banner')
     @unless (config('surveyjs.ai.api_key'))
         <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            <strong>No AI key:</strong> <code>POST /api/translate</code> answers <code>501</code> until you set <code>AI_API_KEY</code> (and optionally <code>AI_BASE_URL</code> and <code>AI_MODEL</code>) in <code>.env</code> and reload.
+            <strong>AI translation is unavailable.</strong> Configure <code>AI_API_KEY</code> in <code>.env</code> to enable it, then reload.
         </p>
     @endunless
 @endsection

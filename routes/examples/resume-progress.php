@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 // #region sjs:resume-progress.server
 // GET /api/progress/{formId} — return the stored progress (answers + UI state) (404 if none yet)
 Route::get('/api/progress/{formId}', function (string $formId) {
-    $json = DB::table('progress')->where('key', $formId)->value('json') ?? abort(404, 'No progress saved yet');
+    $json = DB::table('progress')->where('key', $formId)->value('json') ?? abort(404, 'No saved progress');
 
     return response($json)->header('Content-Type', 'application/json');
 });

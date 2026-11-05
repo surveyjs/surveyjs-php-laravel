@@ -20,16 +20,21 @@ async function extract(file) {
 // Demo only: highlight low-confidence answers and show the unique id
 async function run(file) {
   try {
-    for (const question of survey.getAllQuestions()) question.description = "";
-    show("extract-status", `Extracting ${file.name}…`);
+    document.getElementById("extract-details").hidden = true;
+    show("extract-status", `Extracting answers from ${file.name}…`);
     const { confidence, uniqueId } = await extract(file);
+    for (const question of survey.getAllQuestions()) question.description = "";
     const flagged = confidence.filter((c) => c.flagged);
     for (const c of flagged) {
       const question = survey.getQuestionByName(c.fieldName);
-      if (question) question.description = `⚠ Check this answer: read with ${Math.round(c.confidence * 100)}% confidence`;
+      if (question) question.description = `Review this answer (${Math.round(c.confidence * 100)}% confidence)`;
     }
-    show("extract-status", `Draft filled from ${file.name}. Unique ID: ${uniqueId ?? "none found"}. ${flagged.length} answer(s) flagged for review. Nothing was saved.`);
-    note(`Extracted ${file.name}: answers in the form's shape, ${flagged.length} flagged.`, "ok");
+    show("extract-status", "Draft ready for review");
+    show("extract-source", file.name);
+    show("extract-id", uniqueId ?? "Not detected");
+    show("extract-review-count", String(flagged.length));
+    document.getElementById("extract-details").hidden = false;
+    note("Draft ready for review", "ok");
   } catch (e) {
     show("extract-status", e.message);
     note(e.message, "error");
@@ -44,5 +49,7 @@ document.getElementById("start-over")?.addEventListener("click", () => {
   survey.clear(true, true);
   for (const question of survey.getAllQuestions()) question.description = "";
   document.getElementById("own-scan").value = "";   // so picking the same file again extracts it again
-  show("extract-status", "No scan yet.");
+  show("extract-status", "No scan");
+  document.getElementById("extract-details").hidden = true;
+  for (const field of ["extract-source", "extract-id", "extract-review-count"]) show(field, "");
 });

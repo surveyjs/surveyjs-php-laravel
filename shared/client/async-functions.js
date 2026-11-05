@@ -31,7 +31,7 @@ registerFunction({
 
 // In the definition (shared/definitions/async-functions.json):
 //   "validators": [{ "type": "expression", "expression": "emailExists({email}) = false", "text": "This email is already registered" }]
-//   "validators": [{ "type": "expression", "expression": "shippingCost({postcode}) > 0", "text": "We don't deliver to this postcode yet" }]
+//   "validators": [{ "type": "expression", "expression": "shippingCost({postcode}) > 0", "text": "We don't deliver to this postcode." }]
 //   "calculatedValues": [{ "name": "shipping", "expression": "shippingCost({postcode})" }]
 const survey = mountSurvey(new Model(page.definition));
 

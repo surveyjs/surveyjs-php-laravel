@@ -11,14 +11,18 @@ const describe = (e) => e.text || e.locTextValue?.values?.default || `${e.type} 
 // Show the server's verdict in the completion message
 survey.onComplete.add(async (sender, options) => {
   options.showSaveInProgress();
-  const res = await fetch("/api/responses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ formId: "claim", data: sender.data })
-  });
-  if (res.ok) return options.showSaveSuccess();
-  const { errors, error } = await res.json();
-  options.showSaveError(errors ? errors.map(describe).join("; ") : error);
+  try {
+    const res = await fetch("/api/responses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ formId: "claim", data: sender.data })
+    });
+    if (res.ok) return options.showSaveSuccess();
+    const { errors, error } = await res.json();
+    options.showSaveError(errors ? errors.map(describe).join("; ") : error);
+  } catch {
+    options.showSaveError("Couldn't validate the response. Please try again.");
+  }
 });
 // #endregion
 
@@ -36,12 +40,19 @@ const tampered = {
 };
 for (const button of document.querySelectorAll("[data-tamper]")) {
   button.addEventListener("click", async () => {
-    const res = await fetch("/api/responses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ formId: "claim", data: tampered[button.dataset.tamper] })
-    });
-    const body = await res.json();
-    note(`${button.textContent}: ${res.status} ${body.errors ? body.errors.map(describe).join("; ") : body.error ?? `saved as #${body.id}`}`, res.status === 400 ? "ok" : "error");
+    try {
+      const res = await fetch("/api/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formId: "claim", data: tampered[button.dataset.tamper] })
+      });
+      const body = await res.json();
+      note(res.status === 400
+        ? "Invalid response rejected as expected. No data was saved."
+        : res.ok ? `Invalid response was accepted and saved as #${body.id}.`
+          : `Couldn't validate the response. ${body.error ?? "Please try again."}`, res.status === 400 ? "ok" : "error");
+    } catch {
+      note("Couldn't validate the response. Please try again.", "error");
+    }
   });
 }

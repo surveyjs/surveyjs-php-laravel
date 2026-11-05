@@ -28,7 +28,7 @@ creator.saveSurveyFunc = async (saveNo, callback) => {
 // Demo only: "Open the form" (?form) renders the saved definition with the Form Library instead
 if (new URLSearchParams(location.search).has("form")) {
   mountSurvey(new Model(creator.JSON), "creator");
-  note("This is the saved JSON schema, as the next page load renders it.", "ok");
+  note("This preview uses the saved form schema.", "ok");
 } else {
   mountCreator(creator);
 }

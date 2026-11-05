@@ -159,6 +159,11 @@ function captureXhrResponse(entry, xhr) {
   }
 }
 
+function updateRequestsEmptyState() {
+  const empty = document.getElementById("requests-empty");
+  if (empty) empty.hidden = Boolean(document.querySelector('#requests > li:not([hidden])'));
+}
+
 function startEntry(method, url, requestHeaders) {
   const started = performance.now();
   const u = new URL(url, location.href);
@@ -172,7 +177,7 @@ function startEntry(method, url, requestHeaders) {
     row.dataset.state = "pending";
     row.hidden = demo && !document.getElementById("show-demo-requests")?.checked;
     list.prepend(row);
-    document.getElementById("requests-empty")?.setAttribute("hidden", "");
+    updateRequestsEmptyState();
   }
   return {
     finish(status, getHeader) {
@@ -280,10 +285,11 @@ window.WebSocket = class extends NativeWebSocket {
 
 document.getElementById("show-demo-requests")?.addEventListener("change", (e) => {
   for (const row of document.querySelectorAll('#requests [data-demo="true"]')) row.hidden = !e.target.checked;
+  updateRequestsEmptyState();
 });
 document.getElementById("clear-requests")?.addEventListener("click", () => {
   document.getElementById("requests")?.replaceChildren();
-  document.getElementById("requests-empty")?.removeAttribute("hidden");
+  updateRequestsEmptyState();
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -315,7 +321,7 @@ export async function refreshStored() {
   panel.replaceChildren(...Object.entries(stored).map(([title, value]) =>
     fill("stored-section", { title, json: typeof value === "string" ? value : JSON.stringify(value, null, 2) })).filter(Boolean));
   const status = document.getElementById("stored-updated");
-  if (status) status.textContent = `updated ${new Date().toLocaleTimeString()}`;
+  if (status) status.textContent = `Updated at ${new Date().toLocaleTimeString()}`;
   for (const listener of storedListeners) listener(stored);
 }
 

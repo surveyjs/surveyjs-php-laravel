@@ -36,7 +36,8 @@ test('1. a template without the body slots: the page works as before and nothing
     await expect(posted.locator('[data-field="url"]')).toHaveText('/api/responses');
     await expect(posted.locator('[data-field="status"]')).toHaveText('201');
     await expect(posted.locator('[data-field="time"]')).toHaveText(/^\d+ ms$/);
-    await expect(page.locator('#notes > li').first()).toHaveText(/the stored data is identical to the posted data/);
+    await expect(page.locator('#notes > li').first()).toHaveText(/^Response #\d+: PHP saved the submitted data without changes\.$/);
+    await expect(page.locator('#notes > li').first()).toHaveAttribute('data-kind', 'ok');
 
     // The caller gets the same body as a request from outside the page
     const viaPage = await page.evaluate(() => fetch('/demo/stored/save-response').then((r) => r.text()));
@@ -147,4 +148,49 @@ test('6. XHR: choicesByUrl logs its body, a blob response shows (blob, size unkn
     expect(viaBlob.isBlob).toBe(true);
     expect(viaBlob.text).toBe(direct);
     expect(await slot(row(page, 'GET', '/api/countries?as=blob'), 'response-body')).toBe('(blob, size unknown)');
+});
+
+test('7. No requests reflects the visible rows when demo requests are filtered or cleared', async ({ page }) => {
+    await page.route('**/api/request-log-check', (route) => route.fulfill({ json: { ok: true } }));
+    await page.goto('/examples/save-response');
+    await page.getByRole('tab', { name: 'Requests', exact: true }).click();
+    const empty = page.locator('#requests-empty');
+    const showDemo = page.getByRole('checkbox', { name: 'Show demo requests', exact: true });
+    const demoRows = page.locator('#requests > li[data-demo="true"]');
+    const refreshDemo = () => page.evaluate(() => fetch('/demo/stored/save-response').then((response) => response.json()));
+
+    // The initial stored-data request is logged but excluded by the filter.
+    await expect(demoRows).not.toHaveCount(0);
+    await expect(showDemo).not.toBeChecked();
+    await expect(empty).toBeVisible();
+    await showDemo.check();
+    await expect(demoRows.first()).toBeVisible();
+    await expect(empty).toBeHidden();
+    await showDemo.uncheck();
+    await expect(demoRows.first()).toBeHidden();
+    await expect(empty).toBeVisible();
+
+    // A real request stays visible with either filter setting.
+    await page.evaluate(() => fetch('/api/request-log-check').then((response) => response.json()));
+    await expect(row(page, 'GET', '/api/request-log-check')).toBeVisible();
+    await expect(empty).toBeHidden();
+    await showDemo.check();
+    await showDemo.uncheck();
+    await expect(empty).toBeHidden();
+
+    // Clearing and subsequent demo requests obey the current filter setting.
+    await page.getByRole('button', { name: 'Clear', exact: true }).click();
+    await expect(empty).toBeVisible();
+    await refreshDemo();
+    await expect(demoRows.first()).toBeHidden();
+    await expect(empty).toBeVisible();
+    await showDemo.check();
+    await expect(empty).toBeHidden();
+    await page.getByRole('button', { name: 'Clear', exact: true }).click();
+    await expect(empty).toBeVisible();
+    await refreshDemo();
+    await expect(demoRows.first()).toBeVisible();
+    await expect(empty).toBeHidden();
+    await showDemo.uncheck();
+    await expect(empty).toBeVisible();
 });
