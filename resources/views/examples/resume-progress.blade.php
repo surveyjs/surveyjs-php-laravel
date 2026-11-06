@@ -1,25 +1,40 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Save answers and form state automatically so respondents can continue later. Returning respondents get their saved answers, current page, and focused field back, making longer forms easier to finish.</p>
+    <p>Save answers and form state automatically for each respondent so they can return to the same page and field later. Restore a draft, continue filling out the form, and submit the completed response when ready.</p>
 @endsection
 
 @section('try')
-    <li>Type in a few fields. <strong>Requests</strong> shows one <code>PUT /api/progress/onboarding</code> per pause, not one per keystroke, and the status at the top of <strong>Requests</strong> says when progress was saved.</li>
-    <li>Go to the next page: the page change saves too.</li>
-    <li>Type a letter, then switch to another browser tab and come back at once: the <code>PUT</code> was flushed when the tab was hidden.</li>
-    <li>Press <strong>Reload page</strong>: you are back on the same page, in the same input, with your answers.</li>
-    <li>Press <strong>Start over</strong>: the form is empty again, on its first page, and one <code>PUT</code> saves that, so <strong>Reload page</strong> no longer brings your answers back.</li>
+    <li>Fill in a few fields. Progress saves automatically, and the status above the form confirms each save.</li>
+    <li>Move to another page or focus another field, then press <strong>Reload page</strong>. Your answers, page, and focused field are restored.</li>
+    <li>Switch <strong>Respondent</strong> between Alice and Bob to try separate drafts for each person. The current draft is saved before switching.</li>
+    <li>Open <strong>Requests</strong> to inspect the answers and UI state sent to <code>PUT /api/progress/onboarding</code>. Open <strong>Data</strong> to view the saved draft.</li>
+    <li>Press <strong>Finish onboarding</strong> on the last page to submit the completed response and clear its saved draft.</li>
+    <li>Press <strong>Start over</strong> to discard the draft and return to an empty first page.</li>
+@endsection
+
+@section('demo-user-control')
+    <label class="flex items-center gap-2">
+        <span class="text-gray-600">Respondent</span>
+        <select id="demo-user" disabled class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm disabled:opacity-50">
+            <option value="alice" @selected(auth()->user()?->email === 'alice@example.com')>Alice</option>
+            <option value="bob" @selected(auth()->user()?->email === 'bob@example.com')>Bob</option>
+        </select>
+    </label>
 @endsection
 
 @section('actions')
-    <button id="reload" type="button" class="box-border inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">
+    <button id="reload" type="button" disabled class="box-border inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100 disabled:opacity-50">
         <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 4 21 10 15 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L21 10"/></svg>
         Reload page
     </button>
-    @include('examples.partials.start-over')
+    @include('examples.partials.start-over', ['initiallyDisabled' => true])
+    <div class="flex w-full items-center gap-2">
+        <p data-show="saved" role="status" aria-live="polite" class="text-sm text-gray-700">Loading saved progress...</p>
+        <button id="retry-progress" type="button" hidden class="cursor-pointer rounded border border-gray-300 bg-white px-2.5 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50">Retry</button>
+    </div>
 @endsection
 
-@section('readouts')
-    <p data-show="saved" class="text-sm text-gray-700"></p>
+@section('form')
+    <div id="form" inert aria-busy="true" class="p-4 sm:p-6"></div>
 @endsection

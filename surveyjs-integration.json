@@ -67,7 +67,9 @@
       "licence": "MIT",
       "endpoints": [
         "GET /api/progress/{formId}",
-        "PUT /api/progress/{formId}"
+        "PUT /api/progress/{formId}",
+        "DELETE /api/progress/{formId}",
+        "POST /api/responses"
       ],
       "files": {
         "definition": "shared/definitions/resume-progress.json",
@@ -76,8 +78,11 @@
         "page": "resources/views/examples/resume-progress.blade.php"
       },
       "regions": [
+        "resume-progress.restore",
+        "resume-progress.save",
         "resume-progress.client",
-        "resume-progress.server"
+        "resume-progress.server",
+        "resume-progress.delete"
       ]
     },
     {

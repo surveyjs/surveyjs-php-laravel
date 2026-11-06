@@ -149,9 +149,11 @@ check("load-definition-variables-data an unknown form answers 404 { error }", "l
 });
 
 // ---------- resume-progress
-check("resume-progress: 404 before, 204 on PUT, stored as-is, the same document on GET", "resume-progress", async () => {
+check("resume-progress: null before saving, stored as-is, the same document on GET, null after deletion", "resume-progress", async () => {
   const key = unique("contract");
-  expectError(await http("GET", `/api/progress/${key}`), 404, "GET /api/progress before any PUT");
+  const empty = await http("GET", `/api/progress/${key}`);
+  expectStatus(empty, 200, "GET /api/progress before any PUT");
+  expectEqual(empty.data, null, "no saved progress");
   const doc = { data: ROUNDTRIP, uiState: { currentPageName: "page2", activeElementName: "q1" } };
   expectStatus(await http("PUT", `/api/progress/${key}`, { json: doc }), 204, "PUT /api/progress");
   const s = await stored("resume-progress", { key });
@@ -159,6 +161,10 @@ check("resume-progress: 404 before, 204 on PUT, stored as-is, the same document 
   const r = await http("GET", `/api/progress/${key}`);
   expectStatus(r, 200, "GET /api/progress");
   expectEqual(r.data, doc, "GET /api/progress after PUT");
+  expectStatus(await http("DELETE", `/api/progress/${key}`), 204, "DELETE /api/progress");
+  const cleared = await http("GET", `/api/progress/${key}`);
+  expectStatus(cleared, 200, "GET /api/progress after DELETE");
+  expectEqual(cleared.data, null, "cleared progress");
 });
 
 // ---------- store-files

@@ -115,7 +115,7 @@ test('progress remains pending until a successful save and reports a failed save
     const pending = Promise.withResolvers();
     let saves = 0;
     await page.route('**/api/progress/onboarding', async (route) => {
-        if (route.request().method() === 'GET') return route.fulfill({ status: 404, json: { error: 'No saved progress' } });
+        if (route.request().method() === 'GET') return route.fulfill({ contentType: 'application/json', json: null });
         saves++;
         if (saves > 1) return route.fulfill({ status: 503, json: { error: 'Save unavailable' } });
         await pending.promise;
@@ -124,11 +124,11 @@ test('progress remains pending until a successful save and reports a failed save
     await openRequests(page, 'resume-progress');
     await page.getByRole('textbox', { name: /Full name/ }).fill('Demo visitor');
     await expect.poll(() => saves).toBe(1);
-    await expect(page.locator('[data-show="saved"]')).toHaveText('Changes will be saved automatically');
+    await expect(page.locator('[data-show="saved"]')).toHaveText('Saving progress...');
     pending.resolve();
     await expect(page.locator('[data-show="saved"]')).toHaveText(/^Progress saved at /);
     await page.getByRole('textbox', { name: /Full name/ }).fill('Updated visitor');
-    await expect(page.locator('[data-show="saved"]')).toHaveText("Couldn't save progress. Please try again.");
+    await expect(page.locator('[data-show="saved"]')).toHaveText("Couldn't save progress. Retry to save your latest changes.");
 });
 
 test('tampered response messages distinguish expected rejection from unexpected acceptance', async ({ page }) => {

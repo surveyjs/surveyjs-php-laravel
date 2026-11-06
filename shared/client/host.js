@@ -346,7 +346,7 @@ export function show(name, text) {
 // The demo user is a cookie (alice, bob or none), so all tabs share it. A page signs in as its
 // own user and only some pages offer a switch: each tab sets the cookie back to its user when
 // it gets focus, so its requests keep going out as that user.
-const setDemoUser = (key) => { document.cookie = `demo_user=${key}; path=/; max-age=31536000; samesite=lax`; };
+export const setDemoUser = (key) => { document.cookie = `demo_user=${key}; path=/; max-age=31536000; samesite=lax`; };
 if (page.demoUser) {
   addEventListener("focus", () => setDemoUser(page.demoUser));
   addEventListener("pageshow", () => setDemoUser(page.demoUser));

@@ -1,5 +1,6 @@
 {
   "title": "Workspace onboarding",
+  "completeText": "Finish onboarding",
   "showProgressBar": true,
   "textUpdateMode": "onTyping",
   "pages": [
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "company",
+      "name": "company-details",
       "title": "Your company",
       "elements": [
         { "type": "text", "name": "company", "title": "Company name" },
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "goals",
+      "name": "onboarding-goals",
       "title": "Goals",
       "elements": [
         { "type": "checkbox", "name": "goals", "title": "What do you want to do first?", "choices": ["Collect feedback", "Run registrations", "Build quizzes", "Replace paper forms"] },

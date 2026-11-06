@@ -165,7 +165,10 @@ final class Demo
         return match ($slug) {
             'save-response' => ['responses' => self::responses($id ? null : 'contact', $id)],
             'load-definition-variables-data' => ['responses' => self::responses('claim', $id, customerEmail: $id ? null : (Auth::user()?->email ?? ''))],
-            'resume-progress' => ['progress' => self::documents('progress', $request->query('key', 'onboarding'))],
+            'resume-progress' => [
+                'progress' => self::documents('progress', Auth::id().':'.$request->query('key', 'onboarding')),
+                'responses' => self::responses('onboarding', $id),
+            ],
             'store-files' => [
                 'responses' => self::responses('expenses', $id, 3),
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(10)->get(['id', 'name', 'type']),

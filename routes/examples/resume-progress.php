@@ -4,23 +4,35 @@ declare(strict_types=1);
 
 use App\Integration\StoredJson;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // #region sjs:resume-progress.server
-// GET /api/progress/{formId} — return the stored progress (answers + UI state) (404 if none yet)
+// Return the current user's saved answers and UI state
 Route::get('/api/progress/{formId}', function (string $formId) {
-    $json = DB::table('progress')->where('key', $formId)->value('json') ?? abort(404, 'No saved progress');
+    $key = (Auth::id() ?? abort(401, 'Sign in to load progress')).':'.$formId;
+    $json = DB::table('progress')->where('key', $key)->value('json');
 
-    return response($json)->header('Content-Type', 'application/json');
+    return response($json ?? 'null')->header('Content-Type', 'application/json');
 });
 
-// PUT /api/progress/{formId} — store the progress (answers + UI state) as-is: it's one JSON document
-// Real code keys it by user and form, e.g. Auth::id().':'.$formId; the samples key by form for brevity
+// Store progress under a key containing both the user ID and form ID
 Route::put('/api/progress/{formId}', function (Request $request, string $formId) {
-    // The raw body, not $request->input(): PHP arrays would turn {} into [] in the stored JSON
+    $key = (Auth::id() ?? abort(401, 'Sign in to save progress')).':'.$formId;
+    // Read the raw request body to prevent PHP arrays from turning {} into [] in stored JSON
     $progress = json_decode($request->getContent(), flags: JSON_THROW_ON_ERROR);
-    StoredJson::put('progress', $formId, $progress);                         // stored as it arrived: 1.0 stays 1.0
+    StoredJson::put('progress', $key, $progress);   // Preserve float values such as 1.0
+
+    return response()->noContent();
+});
+// #endregion
+
+// #region sjs:resume-progress.delete
+// Remove only the current user's draft
+Route::delete('/api/progress/{formId}', function (string $formId) {
+    $key = (Auth::id() ?? abort(401, 'Sign in to clear progress')).':'.$formId;
+    DB::table('progress')->where('key', $key)->delete();
 
     return response()->noContent();
 });
