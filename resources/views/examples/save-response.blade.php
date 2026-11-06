@@ -5,10 +5,11 @@
 @endsection
 
 @section('try')
-    <li>Fill out the form: <strong>Requests</strong> stays empty while you type. The JSON schema is a constant in <code>shared/client/save-response.js</code>.</li>
-    <li>Press <strong>Complete</strong>. Exactly one <code>POST /api/responses</code> appears: open <strong>Requests</strong> and expand it to see the posted body and the <code>201</code> answer, <code>{"id": …}</code>.</li>
-    <li>The check at the top of <strong>Requests</strong> says the stored data is <em>identical</em> to the posted data, and <strong>Data</strong> shows <code>responses</code> with it. Try spaces around words, an empty message or non-ASCII text such as <code>naïve — 東京</code>.</li>
-    <li>Press <strong>Start over</strong> and send another one.</li>
+    <li>Enter your email and a message. Both fields are required.</li>
+    <li>Press <strong>Send message</strong>. The completion screen shows <strong>Sending your message...</strong> until the server confirms the save, then displays the response's ID.</li>
+    <li>Open <strong>Requests</strong> and expand <code>POST /api/responses</code> to inspect the request body and the server's response. Then open <strong>Data</strong> to find the saved record with the same ID.</li>
+    <li>If saving fails, an error message appears. Press <strong>Try again</strong> to resend your answers.</li>
+    <li>Press <strong>Start over</strong> to clear the form and submit another response.</li>
 @endsection
 
 @section('actions')

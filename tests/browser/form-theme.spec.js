@@ -40,7 +40,7 @@ test('2. brand and font: the demo green, Lato at 14px in gray-800', async ({ pag
     const email = page.getByRole('textbox', { name: /Your email/ });
     await email.focus();
     await expect(email.locator('xpath=ancestor::*[contains(@class, "sd-formbox")][1]')).toHaveCSS('box-shadow', new RegExp(`${SJS_GREEN.replace(/[()]/g, '\\$&')} 0px 0px 0px 2px inset`));
-    await expect(page.getByRole('button', { name: 'Complete' })).toHaveCSS('background-color', SJS_GREEN);
+    await expect(page.getByRole('button', { name: 'Send message', exact: true })).toHaveCSS('background-color', SJS_GREEN);
 
     const gray800 = await resolveColor(page, 'var(--color-gray-800)');
     for (const text of [page.locator('.sd-question__title').first(), email]) {
@@ -111,7 +111,7 @@ for (const width of [1440, 390]) {
 }
 
 test('6. a required-field error is the design red; its text stays the body colour', async ({ page }) => {
-    await page.getByRole('button', { name: 'Complete' }).click();
+    await page.getByRole('button', { name: 'Send message', exact: true }).click();
     const message = page.locator('.sd-question__erbox').first();
     await expect(message).toBeVisible();
 

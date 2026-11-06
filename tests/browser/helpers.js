@@ -18,10 +18,11 @@ export async function slot(rowLocator, name) {
     return element.textContent();
 }
 
-/** save-response: fill in the form and press Complete. */
+/** save-response: fill in both required fields and send the message. */
 export async function completeSaveResponse(page, email = 'ann@example.com') {
     await page.getByRole('textbox', { name: /Your email/ }).fill(email);
-    await page.getByRole('button', { name: 'Complete' }).click();
+    await page.getByRole('textbox', { name: /How can we help/ }).fill('I would like to learn more about SurveyJS.');
+    await page.getByRole('button', { name: 'Send message', exact: true }).click();
 }
 
 /**
