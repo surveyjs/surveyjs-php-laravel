@@ -120,7 +120,7 @@ class ExamplePagesTest extends TestCase
     }
 
     #[DataProvider('steps')]
-    public function test_the_demo_user_switch_is_only_on_pages_that_show_an_authorization_decision(string $slug): void
+    public function test_the_demo_user_switch_is_only_on_pages_that_demonstrate_user_context(string $slug): void
     {
         $response = $this->withoutVite()->get("/examples/{$slug}")->assertOk();
 

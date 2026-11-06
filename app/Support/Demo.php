@@ -164,7 +164,7 @@ final class Demo
 
         return match ($slug) {
             'save-response' => ['responses' => self::responses($id ? null : 'contact', $id)],
-            'load-definition-variables-data' => ['responses' => self::responses('claim', $id)],
+            'load-definition-variables-data' => ['responses' => self::responses('claim', $id, customerEmail: $id ? null : (Auth::user()?->email ?? ''))],
             'resume-progress' => ['progress' => self::documents('progress', $request->query('key', 'onboarding'))],
             'store-files' => [
                 'responses' => self::responses('expenses', $id, 3),
@@ -206,18 +206,21 @@ final class Demo
     }
 
     /** Stored responses to pick from on a step page: [id => "#id · label"]. */
-    public static function records(string $formId, string $labelKey, int $limit = 10): array
+    public static function records(string $formId, string $labelKey, int $limit = 10, ?string $customerEmail = null): array
     {
-        return DB::table('responses')->where('form_id', $formId)->orderBy('id')->limit($limit)->get(['id', 'data'])
+        return DB::table('responses')->where('form_id', $formId)
+            ->when($customerEmail !== null, fn ($q) => $q->where('data->customer_email', $customerEmail))
+            ->orderBy('id')->limit($limit)->get(['id', 'data'])
             ->mapWithKeys(fn ($row) => [$row->id => "#{$row->id} · ".(json_decode($row->data)->{$labelKey} ?? '')])
             ->all();
     }
 
-    private static function responses(?string $formId, ?int $id, int $limit = 5): array
+    private static function responses(?string $formId, ?int $id, int $limit = 5, ?string $customerEmail = null): array
     {
         return DB::table('responses')
             ->when($formId, fn ($q) => $q->where('form_id', $formId))
             ->when($id, fn ($q) => $q->where('id', $id))
+            ->when($customerEmail !== null, fn ($q) => $q->where('data->customer_email', $customerEmail))
             ->orderByDesc('id')->limit($limit)
             ->get()
             ->map(fn ($row) => ['data' => json_decode($row->data)] + (array) $row)

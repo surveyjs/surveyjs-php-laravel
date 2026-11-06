@@ -1,42 +1,54 @@
 @php
-    // Demo only: this view also serves Option A (GET /claim in routes/examples/load-definition-variables-data.php)
+    // Demo only: this view also serves the embedded-schema example at /claim
     $step = \App\Support\Demo::step('load-definition-variables-data');
     $optionA = isset($definition);
     $record = request()->query('record', '');
-    $records = \App\Support\Demo::records('claim', 'customer_email');
+    $records = $optionA ? [] : \App\Support\Demo::records('claim', 'customer_email', customerEmail: auth()->user()?->email ?? '');
 @endphp
 @extends('layouts.example')
 
 @section('description')
-    <p>Prepare forms with schemas, user context, and saved answers from your backend. Use variables to personalize form text and logic, or restore saved answers so users can edit an existing record.</p>
+    <p>Load form schemas and user variables from your PHP backend, either embedded in HTML or fetched from an API. Use variables to personalize form text and control question visibility, and restore saved answers through the API to prefill the form.</p>
 @endsection
 
 @section('head')
     @if ($optionA)
-        {{-- Option A: the server rendered the definition into the page, escaped for an inline script --}}
-        <script>window.FORM_DEFINITION = {{ Js::from($definition) }};</script>
+        {{-- Embed the schema and user variables as JSON escaped for an inline script --}}
+        <script>
+            window.FORM_DEFINITION = {{ Js::from($definition) }};
+            window.FORM_VARIABLES = {{ Js::from($variables) }};
+        </script>
     @endif
 @endsection
 
 @section('try')
-    <li><strong>Option A</strong> (<a href="{{ url('/claim') }}">/claim</a>): the title says "Hi {{ \Illuminate\Support\Str::before(auth()->user()->name ?? 'there', ' ') }}" and <strong>Requests</strong> shows no JSON schema request.</li>
-    <li><strong>Option B</strong> (<a href="{{ route('example', 'load-definition-variables-data') }}">this page</a>): one <code>GET /api/forms/claim-request?record=</code> returns the JSON schema, variables, and previous answers. Open <strong>Requests</strong> and expand it to see them.</li>
-    <li>In Option B, the title shows Alice's name and <strong>premium</strong> plan, and "use priority handling?" shows because Alice is on the <strong>premium</strong> plan.</li>
-    <li>Pick a <strong>Record</strong>: the form opens pre-filled and edits that claim instead of starting blank.</li>
-    <li>Press <strong>Complete</strong>: <strong>Data</strong> shows <code>responses</code> with the answers and no variables. Press <strong>Start over</strong> to fill it out again.</li>
+    <li>Choose <strong>Schema embedded in HTML</strong> to receive the schema and user variables with the page, or <strong>Load from the API</strong> to fetch them and any saved answers in a separate request. You can inspect the API call in <strong>Requests</strong>.</li>
+    <li>Switch <strong>Customer</strong> between Alice and Bob. User variables personalize the title with their name and plan and show priority handling only for the premium plan.</li>
+    <li>When using <strong>Load from the API</strong>, you can select a <strong>Saved response</strong> to prefill the form with the customer's answers.</li>
+    <li>Press <strong>Submit claim</strong> to save a new response. Open <strong>Data</strong> to inspect the saved answers; user variables are excluded.</li>
+    <li>Press <strong>Start over</strong> to clear the form and the saved response selection.</li>
+@endsection
+
+@section('demo-user-control')
+    <label class="flex items-center gap-2">
+        <span class="text-gray-600">Customer</span>
+        <select id="demo-user" data-reset-query="record" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
+            <option value="alice" @selected(auth()->user()?->email === 'alice@example.com')>Alice (premium)</option>
+            <option value="bob" @selected(auth()->user()?->email === 'bob@example.com')>Bob (basic)</option>
+        </select>
+    </label>
 @endsection
 
 @section('actions')
-    <span class="text-gray-600">Option</span>
-    <span class="box-border inline-flex h-9 items-stretch rounded-md border border-gray-300 bg-white p-0.5">
-        <a href="{{ url('/claim') }}" @if ($optionA) aria-current="page" @endif @class(['flex items-center rounded px-2.5 no-underline', 'bg-sjs-dark text-white' => $optionA, 'text-gray-700 hover:bg-gray-100' => ! $optionA])>A: rendered into the page</a>
-        <a href="{{ route('example', 'load-definition-variables-data') }}" @unless ($optionA) aria-current="page" @endunless @class(['flex items-center rounded px-2.5 no-underline', 'bg-sjs-dark text-white' => ! $optionA, 'text-gray-700 hover:bg-gray-100' => $optionA])>B: fetched</a>
+    <span class="box-border inline-flex min-h-9 max-w-full items-stretch rounded-md border border-gray-300 bg-white p-0.5" role="group" aria-label="Schema delivery">
+        <a href="{{ url('/claim') }}" @if ($optionA) aria-current="page" @endif @class(['flex items-center rounded px-2.5 py-1 no-underline', 'bg-sjs-dark text-white' => $optionA, 'text-gray-700 hover:bg-gray-100' => ! $optionA])>Schema embedded in HTML</a>
+        <a href="{{ route('example', 'load-definition-variables-data') }}" @unless ($optionA) aria-current="page" @endunless @class(['flex items-center rounded px-2.5 py-1 no-underline', 'bg-sjs-dark text-white' => ! $optionA, 'text-gray-700 hover:bg-gray-100' => $optionA])>Load from the API</a>
     </span>
     @unless ($optionA)
         <form method="get" class="flex items-center gap-2">
-            <label for="record" class="text-gray-600">Record</label>
+            <label for="record" class="text-gray-600">Saved response</label>
             <select id="record" name="record" onchange="this.form.submit()" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
-                <option value="">None: a blank claim</option>
+                <option value="">New response</option>
                 @foreach ($records as $id => $label)
                     <option value="{{ $id }}" @selected((string) $id === (string) $record)>{{ $label }}</option>
                 @endforeach

@@ -16,8 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
  * ("none"). Real apps authenticate here with the session guard or Sanctum; the steps only call
  * Auth::user() and the gates in AppServiceProvider.
  *
- * Only the pages whose server code makes an authorization decision, with a "Try this" item that
- * shows its outcome, offer a switch (PAGES). Every other page signs in as Alice, so a choice made
+ * Pages that demonstrate user context or authorization offer a switch (PAGES).
+ * Every other page signs in as Alice, so a choice made
  * on one page never breaks another.
  */
 class DemoUser
@@ -28,6 +28,7 @@ class DemoUser
 
     /** Step slug => the users its switch offers. The first is the default. */
     public const PAGES = [
+        'load-definition-variables-data' => ['alice', 'bob'], // Compare premium and basic customer variables
         'store-files' => ['alice', 'none'],             // signed out, GET /api/files/{id} answers 404 (Gate read-file)
         'creator-load-save' => ['alice', 'bob'],        // Bob's saves answer 403 (Gate edit-forms)
         'variable-presets' => ['alice', 'bob'],         // Bob's preset edits answer 403 (Gate edit-forms)
@@ -36,6 +37,9 @@ class DemoUser
     public function handle(Request $request, Closure $next): Response
     {
         self::signIn($request->cookies->get('demo_user'));
+        if ($request->is('claim')) {
+            self::signInForPage('load-definition-variables-data', $request);
+        }
 
         return $next($request);
     }

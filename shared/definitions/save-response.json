@@ -2,7 +2,18 @@
   "title": "Contact us",
   "completeText": "Send message",
   "elements": [
-    { "type": "text", "name": "email", "title": "Your email", "inputType": "email", "isRequired": true },
-    { "type": "comment", "name": "message", "title": "How can we help?", "isRequired": true }
+    {
+      "type": "text",
+      "name": "email",
+      "title": "Your email",
+      "inputType": "email",
+      "isRequired": true
+    },
+    {
+      "type": "comment",
+      "name": "message",
+      "title": "How can we help?",
+      "isRequired": true
+    }
   ]
 }

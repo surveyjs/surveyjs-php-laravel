@@ -159,6 +159,7 @@
             @if ($hasActions)
                 <div id="actions" class="flex flex-wrap items-center gap-2 text-sm">
                     @if (count($users) > 1)
+                        @section('demo-user-control')
                         <label class="flex items-center gap-2">
                             <span class="text-gray-600">Demo user</span>
                             <select id="demo-user" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
@@ -167,6 +168,7 @@
                                 @endforeach
                             </select>
                         </label>
+                        @show
                     @endif
                     @yield('actions')
                 </div>

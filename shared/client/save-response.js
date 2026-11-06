@@ -4,18 +4,29 @@ import { mountSurvey, note, onStored, show } from "./host.js";
 // #region sjs:save-response.client
 import { Model } from "survey-core";
 
-// The definition can be a constant in the page — no database needed
+// Define the form directly in the page - no database needed
 const definition = {
   title: "Contact us",
   completeText: "Send message",
   elements: [
-    { type: "text", name: "email", title: "Your email", inputType: "email", isRequired: true },
-    { type: "comment", name: "message", title: "How can we help?", isRequired: true }
+    {
+      type: "text",
+      name: "email",
+      title: "Your email",
+      inputType: "email",
+      isRequired: true
+    },
+    {
+      type: "comment",
+      name: "message",
+      title: "How can we help?",
+      isRequired: true
+    }
   ]
 };
 const survey = new Model(definition);
 
-// Save after completion; SurveyJS offers a retry action if the request fails.
+// Save after completion; SurveyJS offers a retry action if saving fails
 survey.onComplete.add(async (sender, options) => {
   sender.setVariable("responseId", null);
   sender.completedHtml = "<h3>Sending your message...</h3>";

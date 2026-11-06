@@ -353,7 +353,11 @@ if (page.demoUser) {
 }
 document.getElementById("demo-user")?.addEventListener("change", (e) => {
   setDemoUser(e.target.value);
-  location.reload();
+  const resetQuery = e.target.dataset.resetQuery;
+  if (!resetQuery) return location.reload();
+  const url = new URL(location.href);
+  url.searchParams.delete(resetQuery);
+  location.assign(url);
 });
 
 /** Display name for collaboration: the demo user's name plus a per-window number, so two windows differ. */

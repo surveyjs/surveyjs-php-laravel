@@ -182,6 +182,6 @@ test('response confirmation uses the record accepted by the backend and excludes
     });
     await openRequests(page, 'load-definition-variables-data');
     await page.getByRole('textbox', { name: /^Email/ }).fill('visitor@example.com');
-    await page.getByRole('button', { name: 'Complete', exact: true }).click();
+    await page.getByRole('button', { name: 'Submit claim', exact: true }).click();
     await expect(notes(page, 'ok').first()).toHaveText('Response #501 saved. Only submitted answers were stored; form variables were excluded.');
 });

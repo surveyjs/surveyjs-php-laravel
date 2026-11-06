@@ -24,8 +24,8 @@ class DisplayedRegionsTest extends TestCase
     public static function pitfalls(): array
     {
         return [
-            'save-response.server' => ['routes/examples/save-response.php', [self::RAW_BODY, self::DECODE, self::AS_IT_ARRIVED, 'TrimStrings', 'ConvertEmptyStringsToNull', 'bootstrap/app.php']],
-            'load-definition-variables-data.server' => ['routes/examples/load-definition-variables-data.php', ['previous answers, or {}']],
+            'save-response.server' => ['routes/examples/save-response.php', ['Read the raw request body to prevent PHP arrays from turning {} into [] in stored JSON', self::DECODE, 'Preserve float values such as 1.0', 'TrimStrings', 'ConvertEmptyStringsToNull', 'bootstrap/app.php']],
+            'load-definition-variables-data.server' => ['routes/examples/load-definition-variables-data.php', ['Return previous answers, or {} when none are available']],
             'resume-progress.server' => ['routes/examples/resume-progress.php', [self::RAW_BODY, self::DECODE, self::AS_IT_ARRIVED]],
             'store-files.server' => ['routes/examples/store-files.php', ['field "files[]": PHP keeps only the last of several "files"', '404, not 403', 'nosniff', 'sandbox']],
             'relational-storage.server' => ['routes/examples/relational-storage.php', [self::RAW_BODY, self::DECODE, self::AS_IT_ARRIVED]],

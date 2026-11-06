@@ -60,6 +60,8 @@ class DatabaseSeeder extends Seeder
         foreach ($this->seed('variable-presets.json') as $formId => $presets) {
             DB::table('variable_presets')->insert(['key' => $formId, 'json' => json_encode($presets, self::JSON_FLAGS)]);
         }
+
+        $this->call(LoadDefinitionDemoSeeder::class);
     }
 
     private function seed(string $file, bool $associative = false): mixed
