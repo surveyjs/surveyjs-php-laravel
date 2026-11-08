@@ -13,7 +13,7 @@ Route::post('/api/translate', function (Request $request) {
     ['strings' => $strings, 'from' => $from, 'to' => $to] = $request->only(['strings', 'from', 'to']) + ['strings' => [], 'from' => '', 'to' => ''];
 
     $translated = AiTranslation::translate($strings, $from, $to);            // any OpenAI-compatible provider: your key, your choice
-    abort_unless(is_array($translated) && count($translated) === count($strings), 502, 'The AI provider returned an unexpected answer');
+    abort_unless(is_array($translated) && count($translated) === count($strings) && count(array_filter($translated, 'is_string')) === count($strings), 502, 'The AI provider returned an unexpected answer');
 
     return response()->json($translated);                                    // what options.callback() takes
 });

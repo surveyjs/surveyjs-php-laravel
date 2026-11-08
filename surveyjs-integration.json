@@ -296,10 +296,12 @@
       "need": "Authors need to translate forms into multiple languages quickly.",
       "licence": "Commercial client, needs an AI provider",
       "endpoints": [
-        "POST /api/translate"
+        "POST /api/translate",
+        "GET /api/forms/{id}",
+        "PUT /api/forms/{id}"
       ],
       "files": {
-        "definition": "shared/definitions/creator-load-save.json",
+        "definition": "shared/definitions/ai-translation.json",
         "client": "shared/client/ai-translation.js",
         "server": "routes/examples/ai-translation.php",
         "page": "resources/views/examples/ai-translation.blade.php"

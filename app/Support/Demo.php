@@ -192,7 +192,8 @@ final class Demo
                     ->where('created_at', '>=', (string) $request->query('from', '1970-01-01'))
                     ->when($request->filled('to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('to')))->count(),
             ],
-            'creator-load-save', 'ai-translation', 'lint-definition' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
+            'creator-load-save', 'lint-definition' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
+            'ai-translation' => ['forms' => self::documents('forms', 'support-translations')],
             'creator-uploads' => [
                 'forms' => self::documents('forms', 'support-assets'),
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(5)->get(['id', 'name', 'type']),
