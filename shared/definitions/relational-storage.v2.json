@@ -1,5 +1,5 @@
 {
-  "title": "Insurance claim (definition v2: questions renamed in Creator)",
+  "title": "Insurance claim",
   "elements": [
     {
       "type": "panel", "name": "contact", "title": "Contact",

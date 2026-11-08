@@ -8,17 +8,33 @@
 @endsection
 
 @section('try')
-    <li>Fill out the <strong>v1</strong> form and press <strong>Complete</strong>. <strong>Data</strong> shows the <code>responses</code> row with <code>definition_version: "v1"</code>, and the <code>claims</code> row with <code>customer_email</code> and <code>amount</code> filled.</li>
-    <li>Switch the <strong>JSON schema</strong> to <strong>v2</strong>: the questions are renamed (<code>contact_email</code>, <code>claimed_total</code>) and moved into panels. Submit again: the same columns fill.</li>
-    <li>Open the <a href="{{ route('example', 'creator-load-save') }}">Load and Save Form JSON Schemas</a> page and select a question: the Property Grid's Data category shows <code>dbColumn</code>. Back here, press <strong>Start over</strong> to submit another claim.</li>
+    <li>In <strong>v1</strong>, enter an email and amount, then press <strong>Submit claim</strong>. The confirmation shows the saved response ID. Open <strong>Data</strong> to compare the original answers with the database columns.</li>
+    <li>Switch <strong>JSON schema</strong> to <strong>v2</strong>. The mapping table shows new question names with the same answer keys and database columns. Submit another claim to see that the mapping still works.</li>
+    <li>Inspect <strong>Data</strong>: each response keeps its schema version and original JSON, including answers that aren't copied into columns.</li>
+    <li>Press <strong>Start over</strong> to submit another claim with the selected schema version.</li>
 @endsection
 
 @section('actions')
     <span class="text-gray-600">JSON schema</span>
     <span class="box-border inline-flex h-9 items-stretch rounded-md border border-gray-300 bg-white p-0.5">
-        @foreach (['v1' => 'v1: q_email, q_amount', 'v2' => 'v2: renamed in Survey Creator'] as $v => $label)
-            <a href="?version={{ $v }}" @if ($version === $v) aria-current="page" @endif @class(['flex items-center rounded px-2.5 no-underline', 'bg-sjs-dark text-white' => $version === $v, 'text-gray-700 hover:bg-gray-100' => $version !== $v])>{{ $label }}</a>
+        @foreach (['v1' => 'v1: original questions', 'v2' => 'v2: renamed questions'] as $v => $label)
+            <a data-definition-version href="?version={{ $v }}" @if ($version === $v) aria-current="page" @endif @class(['flex items-center rounded px-2.5 no-underline aria-disabled:opacity-50', 'bg-sjs-dark text-white' => $version === $v, 'text-gray-700 hover:bg-gray-100' => $version !== $v])>{{ $label }}</a>
         @endforeach
     </span>
     @include('examples.partials.start-over')
+@endsection
+
+@section('form')
+    <section class="space-y-3 border-b border-gray-200 p-4 sm:p-6">
+        <h3 class="m-0 text-lg font-semibold">Answer mapping · {{ $version }}</h3>
+        <p class="m-0 text-sm text-gray-600">The PHP route copies the stable answer keys into these columns. Renaming a question doesn't change its answer key.</p>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50"><tr><th class="px-3 py-2">Question name</th><th class="px-3 py-2">Answer key (valueName)</th><th class="px-3 py-2">Database column</th></tr></thead>
+                <tbody id="mapping-rows" class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
+        <p data-show="mapping-status" role="status" aria-live="polite" class="m-0 text-sm text-gray-700"></p>
+    </section>
+    <div id="form" class="p-4 sm:p-6"></div>
 @endsection

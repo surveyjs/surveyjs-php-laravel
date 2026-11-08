@@ -1,5 +1,5 @@
 {
-  "title": "Insurance claim (definition v1)",
+  "title": "Insurance claim",
   "elements": [
     { "type": "text", "name": "q_email", "valueName": "customer_email", "dbColumn": "claims.customer_email", "title": "Email", "inputType": "email", "isRequired": true },
     { "type": "text", "name": "q_amount", "valueName": "amount", "dbColumn": "claims.amount", "title": "Amount claimed", "inputType": "number", "min": 0 },

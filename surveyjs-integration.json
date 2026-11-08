@@ -181,6 +181,7 @@
       },
       "regions": [
         "relational-storage.client",
+        "relational-storage.save",
         "relational-storage.server"
       ]
     },
