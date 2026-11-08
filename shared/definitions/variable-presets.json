@@ -5,7 +5,7 @@
     { "type": "comment", "name": "issue", "title": "Describe the issue", "isRequired": true },
     {
       "type": "boolean", "name": "callback", "title": "Call me back within one hour",
-      "description": "Premium customers only: visibleIf {customerTier} = 'premium'",
+      "description": "Available to customers on the premium plan",
       "visibleIf": "{customerTier} = 'premium'"
     }
   ]

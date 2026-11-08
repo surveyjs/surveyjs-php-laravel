@@ -306,7 +306,9 @@ check("variable-presets: GET, 404, 403 for Bob, PUT stored as-is", "variable-pre
   expectStatus(seeded, 200, "GET /api/variable-presets/support");
   expect(Array.isArray(seeded.data) && seeded.data.length >= 2, "basic and premium presets are seeded");
   const key = unique("contract");
-  expectError(await http("GET", `/api/variable-presets/${key}`), 404, "GET unknown presets");
+  const empty = await http("GET", `/api/variable-presets/${key}`);
+  expectStatus(empty, 200, "GET unsaved presets");
+  expectEqual(empty.data, [], "unsaved presets are an empty list");
   const presets = [{ name: "basic", variables: { customerTier: "basic" } }, { name: "premium", description: "", variables: { customerTier: "premium", extra: {} } }];
   expectError(await http("PUT", `/api/variable-presets/${key}`, { json: presets, user: "bob" }), 403, "PUT as Bob");
   expectStatus(await http("PUT", `/api/variable-presets/${key}`, { json: presets }), 204, "PUT as Alice");

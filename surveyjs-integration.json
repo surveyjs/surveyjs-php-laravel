@@ -332,6 +332,7 @@
       },
       "regions": [
         "variable-presets.client",
+        "variable-presets.save",
         "variable-presets.server"
       ]
     },
