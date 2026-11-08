@@ -444,7 +444,8 @@
       "need": "Completed forms arrive as paper scans, photos, or filled PDFs.",
       "licence": "MIT, needs an AI provider",
       "endpoints": [
-        "POST /api/work-orders/extract"
+        "POST /api/work-orders/extract",
+        "POST /api/responses"
       ],
       "files": {
         "definition": "shared/definitions/extract-from-paper.json",
@@ -454,6 +455,7 @@
       },
       "regions": [
         "extract-from-paper.client",
+        "extract-from-paper.save",
         "extract-from-paper.server"
       ]
     }

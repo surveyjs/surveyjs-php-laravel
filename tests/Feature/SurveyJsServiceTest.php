@@ -13,6 +13,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -265,7 +266,7 @@ class SurveyJsServiceTest extends TestCase
 
     private function extract()
     {
-        return $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->createWithContent('scan.png', 'PNG bytes')], ['Accept' => 'application/json']);
+        return $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->createWithContent('scan.png', file_get_contents(base_path('shared/samples/work-order-scan.png')))], ['Accept' => 'application/json']);
     }
 
     public function test_iv4_returns_answers_in_the_forms_shape_and_saves_nothing(): void
@@ -275,7 +276,7 @@ class SurveyJsServiceTest extends TestCase
 
         $this->assertNothingSaved('responses', fn () => $this->extract()->assertOk()
             ->assertExactJson(['answers' => ['customer_name' => 'Ann'], 'confidence' => $confidence, 'uniqueId' => 'WO-1']));
-        Http::assertSent(fn ($request) => json_decode($request->body(), true)['document'] === base64_encode('PNG bytes')
+        Http::assertSent(fn ($request) => json_decode($request->body(), true)['document'] === base64_encode(file_get_contents(base_path('shared/samples/work-order-scan.png')))
             && json_decode($request->body(), true)['schema']['title'] === 'Work order'
             && str_contains($request->header('Content-Type')[0] ?? '', 'application/json'));
     }
@@ -315,6 +316,41 @@ class SurveyJsServiceTest extends TestCase
         $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->create('big.png', 5 * 1024 + 1)], ['Accept' => 'application/json'])
             ->assertStatus(413)->assertJsonStructure(['error']);
         Http::assertNothingSent();
+    }
+
+    public function test_unsupported_documents_are_rejected_without_calling_the_provider(): void
+    {
+        Http::fake();
+        $stream = tmpfile();
+        fwrite($stream, 'Not an image');
+        $file = new UploadedFile(stream_get_meta_data($stream)['uri'], 'scan.png', 'image/png', test: true);
+        try {
+            $this->post('/api/work-orders/extract', ['scan' => $file], ['Accept' => 'application/json'])->assertStatus(400);
+        } finally {
+            fclose($stream);
+        }
+        Http::assertNothingSent();
+    }
+
+    public function test_unexpected_extraction_results_do_not_put_document_answers_in_logs(): void
+    {
+        Log::shouldReceive('error')->once()->with('SurveyJS service: unexpected answer from /extract', ['status' => 200]);
+        Http::fake([self::SERVICE.'/extract' => Http::response(['data' => ['private answer'], 'confidence' => []], 200)]);
+        $this->extract()->assertStatus(502);
+    }
+
+    public function test_reviewed_work_order_answers_are_saved_only_by_the_separate_submission(): void
+    {
+        Http::fake([
+            self::SERVICE.'/extract' => Http::response(['data' => ['customer_name' => 'Draft customer'], 'confidence' => []], 200),
+            self::SERVICE.'/response' => Http::response('{}', 200, ['Content-Type' => 'application/json']),
+        ]);
+        $before = DB::table('responses')->where('form_id', 'work-order')->count();
+        $this->extract()->assertOk();
+        $this->assertSame($before, DB::table('responses')->where('form_id', 'work-order')->count());
+        $response = $this->postJson('/api/responses', ['formId' => 'work-order', 'data' => ['customer_name' => 'Reviewed customer', 'site_address' => null, 'resolved' => false]])->assertCreated();
+        $this->assertSame($before + 1, DB::table('responses')->where('form_id', 'work-order')->count());
+        $this->getJson('/demo/stored/extract-from-paper?id='.$response->json('id'))->assertOk()->assertJsonPath('responses.0.data.customer_name', 'Reviewed customer')->assertJsonPath('responses.0.data.resolved', false);
     }
 
     private function assertNothingSaved(string $table, \Closure $request): void

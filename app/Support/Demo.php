@@ -206,7 +206,7 @@ final class Demo
             'validate-response' => ['responses' => self::responses('claim', $id)],
             'lint-definition' => ['forms' => self::documents('forms', 'support-lint')],
             'server-pdf' => ['responses' => self::responses('claim', $id, 10)],
-            'extract-from-paper' => ['row counts' => self::rowCounts()],
+            'extract-from-paper' => ['row counts' => self::rowCounts(), 'responses' => self::responses('work-order', $id, 3)],
             default => null,
         };
     }
