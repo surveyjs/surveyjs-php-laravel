@@ -152,7 +152,7 @@ test('schema messages confirm accepted saves and give a next step for validation
     let verdict = 'saved';
     const pageErrors = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
-    await page.route('**/api/forms/support', (route) => {
+    await page.route('**/api/forms/support-lint', (route) => {
         if (route.request().method() === 'GET') return route.fulfill({ json: { definition: creatorDefinition } });
         if (verdict === 'saved') return route.fulfill({ status: 204 });
         if (verdict === 'invalid') return route.fulfill({ status: 422, json: { errors: [{ message: 'Unknown question reference' }] } });

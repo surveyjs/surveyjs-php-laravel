@@ -155,6 +155,15 @@ class SurveyJsServiceTest extends TestCase
             ->assertStatus(422)->assertExactJson($answer));
     }
 
+    public function test_lint_rejection_preserves_the_previous_saved_schema(): void
+    {
+        $previous = DB::table('forms')->where('key', 'support-lint')->value('json');
+        Http::fake([self::SERVICE.'/schema' => Http::response(['errors' => [['ruleId' => 'reference/unknown', 'message' => 'Missing question']]], 422)]);
+        $this->putJson('/api/forms/support-lint', ['elements' => [['type' => 'text', 'name' => 'bad', 'visibleIf' => '{missing} = 1']]])->assertStatus(422);
+        $this->assertSame($previous, DB::table('forms')->where('key', 'support-lint')->value('json'));
+        $this->getJson('/demo/stored/lint-definition')->assertOk()->assertJsonPath('forms.key', 'support-lint');
+    }
+
     public function test_iv2_warnings_next_to_another_key_are_not_recognized(): void
     {
         Http::fake([self::SERVICE.'/schema' => Http::response(['warnings' => [], 'error' => 'odd'], 200)]);
