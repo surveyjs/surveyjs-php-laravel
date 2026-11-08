@@ -106,7 +106,9 @@
       },
       "regions": [
         "store-files.client",
-        "store-files.server"
+        "store-files.preview",
+        "store-files.server",
+        "store-files.download"
       ]
     },
     {

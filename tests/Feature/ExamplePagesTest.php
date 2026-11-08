@@ -244,7 +244,7 @@ class ExamplePagesTest extends TestCase
         $page = fn (string $slug) => $this->withoutVite()->get("/examples/{$slug}")->assertOk()->getContent();
 
         $this->assertStringContainsString('data-show="saved"', $this->between($page('resume-progress'), 'id="actions"', 'id="component"'));
-        $this->assertStringContainsString('data-show="sizes"', $this->between($page('store-files'), 'id="readouts"', 'id="notes"'));
+        $this->assertStringContainsString('data-show="sizes"', $this->between($page('store-files'), 'id="component"', 'id="panel-code"'));
         $this->assertStringContainsString('data-show="extract-status"', $this->between($page('extract-from-paper'), 'id="actions"', 'id="component"'));
         $this->assertStringContainsString('data-show="room"', $this->between($page('fill-together'), 'id="actions"', 'id="component"'));
         foreach (['fill-together', 'edit-together'] as $slug) {

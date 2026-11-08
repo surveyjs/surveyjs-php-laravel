@@ -5,10 +5,10 @@
 @endsection
 
 @section('try')
-    <li>Add one or two images or PDFs to <strong>Receipts</strong>. <strong>Requests</strong> shows one <code>POST /api/files</code>; the size line at the top of <strong>Requests</strong> compares the response size with Base64 against the size with IDs.</li>
-    <li><strong>Data</strong> lists the <code>files</code> by ID, name, and type. Press <strong>Complete</strong>: the stored response holds IDs, not contents.</li>
-    <li>The preview of each file comes through <code>GET /api/files/&lt;id&gt;</code> in <strong>Requests</strong>.</li>
-    <li>Switch the <strong>Demo user</strong> to <strong>Signed out</strong>, then upload a file: the upload still answers <code>200</code>, but the preview's <code>GET /api/files/&lt;id&gt;</code> answers <code>404</code> (<code>Gate::denies('read-file')</code>).</li>
+    <li>Enter the purpose of an expense and add an image or PDF to <strong>Receipts</strong>. Each file can be up to 5 MB. The comparison above the form shows how file references reduce the response size.</li>
+    <li>Press <strong>Submit expense report</strong>. The confirmation shows the saved response ID. Open <strong>Data</strong> to inspect the response's file references and the separate file records.</li>
+    <li>Open <strong>Requests</strong> to inspect the upload and the preview requests. File previews are retrieved through a download endpoint that checks access.</li>
+    <li>Switch <strong>Demo user</strong> to <strong>Signed out</strong> and upload a file. Uploading is allowed in this demo, but the private preview is unavailable.</li>
     <li>Press <strong>Start over</strong> to fill out another expense report.</li>
 @endsection
 
@@ -16,6 +16,10 @@
     @include('examples.partials.start-over')
 @endsection
 
-@section('readouts')
-    <p class="text-sm text-gray-700" data-show="sizes">Upload a file to compare response sizes.</p>
+@section('form')
+    <div class="space-y-1 border-b border-gray-200 px-4 py-3 text-sm sm:px-6">
+        <p data-show="sizes" class="m-0 text-gray-700">Upload a file to compare response sizes.</p>
+        <p data-show="file-status" role="status" aria-live="polite" class="m-0 text-gray-700"></p>
+    </div>
+    <div id="form" class="p-4 sm:p-6"></div>
 @endsection

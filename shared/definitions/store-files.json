@@ -1,11 +1,14 @@
 {
   "title": "Expense report",
+  "completeText": "Submit expense report",
   "elements": [
-    { "type": "text", "name": "purpose", "title": "Purpose of the expense" },
+    { "type": "text", "name": "purpose", "title": "Purpose of the expense", "isRequired": true },
     {
       "type": "file", "name": "receipt", "title": "Receipts",
       "storeDataAsText": false, "allowMultiple": true, "maxSize": 5242880,
-      "description": "Images or PDFs up to 5 MB each"
+      "acceptedTypes": "image/png,image/jpeg,image/webp,image/gif,application/pdf",
+      "isRequired": true, "waitForUpload": true,
+      "description": "PNG, JPEG, WebP, GIF, or PDF files up to 5 MB each"
     }
   ]
 }

@@ -103,7 +103,7 @@ const definition = { elements: [{ type: "text", name: "q1" }] };
 const claimData = { customer_email: "smoke@example.com", amount: 120, incident: "theft", details: "Smoke test" };
 const files = () => {
   const form = new FormData();
-  form.append("files[]", new Blob([Buffer.from("smoke\n")], { type: "text/plain" }), "smoke.txt");
+  form.append("files[]", new Blob([Buffer.from("%PDF-1.4\n% Smoke test\n%%EOF\n")], { type: "application/pdf" }), "smoke.pdf");
   return form;
 };
 
