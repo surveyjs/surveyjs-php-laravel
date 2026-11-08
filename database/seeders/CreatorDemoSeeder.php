@@ -11,7 +11,7 @@ class CreatorDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['support-assets' => 'creator-uploads.json', 'support-translations' => 'ai-translation.json'] as $key => $file) {
+        foreach (['support-assets' => 'creator-uploads.json', 'support-translations' => 'ai-translation.json', 'support-team' => 'creator-load-save.json'] as $key => $file) {
             DB::table('forms')->insertOrIgnore([
                 'key' => $key,
                 'json' => file_get_contents(base_path('shared/definitions/'.$file)),

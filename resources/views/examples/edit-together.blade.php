@@ -7,10 +7,10 @@
 @section('theme', 'creator')
 
 @section('try')
-    <li>Press <strong>Open a second window</strong>: it opens the invite link, and each window shows the other's selection and edits live.</li>
-    <li>Make a few edits, then press <strong>Open a second window</strong> again for a third: it replays the saved JSON schema plus the change log and matches.</li>
-    <li>Open the <strong>Collaboration</strong> menu above Survey Creator's tabs and choose <strong>Show Version History</strong>: it lists every change in the room.</li>
-    <li>Press <strong>Save</strong> in either window: <code>PUT /api/forms/support</code> stores it. When every window closes, the room empties, and a new session starts from the saved JSON schema.</li>
+    <li>Press <strong>Open a second window</strong>. Change a question title in one window and select a different question in the other to see shared edits and each author's selection.</li>
+    <li>Open a third window to see the current form reconstructed from the saved schema and the session's edit log.</li>
+    <li>Open the <strong>Collaboration</strong> menu and choose <strong>Show Version History</strong> to inspect the session's changes.</li>
+    <li>Press <strong>Save</strong> in either window to store the schema. Shared edits are temporary until saved; after all windows close and the room expires, a new session starts from the saved version.</li>
 @endsection
 
 @section('actions')
@@ -32,5 +32,11 @@
 @endsection
 
 @section('form')
-    <div id="creator" class="h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]"></div>
+    <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 text-sm">
+        <div class="min-w-0 flex-1"><p data-show="connection-status" role="status" aria-live="polite" class="m-0 text-gray-700">Connecting to the shared form...</p><p data-show="schema-status" role="status" class="m-0 mt-1 text-gray-600"></p></div>
+        <button id="reconnect" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 font-semibold">Reconnect</button>
+        <button id="retry-save" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 font-semibold disabled:opacity-50">Try saving again</button>
+        <button id="download-local" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 font-semibold">Download local copy</button>
+    </div>
+    <div id="creator" hidden inert class="h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]"></div>
 @endsection

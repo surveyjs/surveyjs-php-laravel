@@ -26,4 +26,13 @@ class CreatorDemoTest extends TestCase
         $this->getJson('/demo/stored/creator-uploads')->assertOk()->assertJsonPath('forms.key', 'support-assets');
         $this->get('/shared/samples/support-help.svg')->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
     }
+
+    public function test_collaborative_editing_has_an_independent_saved_schema(): void
+    {
+        $this->assertNotNull(DB::table('forms')->where('key', 'support-team')->value('json'));
+        DB::table('forms')->where('key', 'support-team')->update(['json' => '{"title":"Team edits"}']);
+        $this->seed(CreatorDemoSeeder::class);
+        $this->getJson('/demo/stored/edit-together')->assertOk()->assertJsonPath('forms.json.title', 'Team edits');
+        $this->assertNotSame('{"title":"Team edits"}', DB::table('forms')->where('key', 'support')->value('json'));
+    }
 }

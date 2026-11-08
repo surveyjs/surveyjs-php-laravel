@@ -358,6 +358,7 @@
       },
       "regions": [
         "edit-together.client",
+        "edit-together.save",
         "edit-together.server"
       ],
       "see": "https://github.com/surveyjs/collaborative-form-editing"

@@ -201,7 +201,7 @@ final class Demo
             'variable-presets' => ['variable_presets' => self::documents('variable_presets', $request->query('key', 'support'))],
             'edit-together' => [
                 'relay room' => self::relaySnapshot($request, 'edit'),
-                'forms' => self::documents('forms', 'support'),
+                'forms' => self::documents('forms', 'support-team'),
             ],
             'validate-response' => ['responses' => self::responses('claim', $id)],
             'server-pdf' => self::claims(null, 10),

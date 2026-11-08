@@ -11,5 +11,6 @@
   "support": "creator-load-save.json",
   "support-assets": "creator-uploads.json",
   "support-translations": "ai-translation.json",
+  "support-team": "creator-load-save.json",
   "work-order": "extract-from-paper.json"
 }
