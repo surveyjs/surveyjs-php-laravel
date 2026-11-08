@@ -155,6 +155,7 @@
         "page": "resources/views/examples/async-functions.blade.php"
       },
       "regions": [
+        "async-functions.lookup",
         "async-functions.client",
         "async-functions.server"
       ]

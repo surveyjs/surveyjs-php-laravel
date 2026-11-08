@@ -1,5 +1,7 @@
 {
-  "title": "Create an account",
+  "title": "Account and delivery details",
+  "completeText": "Check details",
+  "completedHtml": "<h3>Your details passed validation.</h3><p>The email is available and delivery is supported.</p>",
   "checkErrorsMode": "onValueChanged",
   "calculatedValues": [
     { "name": "shipping", "expression": "shippingCost({postcode})" }
@@ -18,6 +20,6 @@
         { "type": "expression", "expression": "shippingCost({postcode}) > 0", "text": "We don't deliver to this postcode." }
       ]
     },
-    { "type": "expression", "name": "shipping_price", "title": "Shipping", "expression": "{shipping}", "displayStyle": "currency", "currency": "EUR" }
+    { "type": "expression", "name": "shipping_price", "title": "Shipping", "visible": false, "expression": "{shipping}", "displayStyle": "currency", "currency": "EUR" }
   ]
 }
