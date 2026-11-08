@@ -188,8 +188,9 @@ final class Demo
             ],
             'dashboard' => [
                 'responses' => DB::table('responses')->where('form_id', 'feedback')->count(),
-                'since from' => DB::table('responses')->where('form_id', 'feedback')
-                    ->where('created_at', '>=', (string) $request->query('from', '1970-01-01'))->count(),
+                'in date range' => DB::table('responses')->where('form_id', 'feedback')
+                    ->where('created_at', '>=', (string) $request->query('from', '1970-01-01'))
+                    ->when($request->filled('to'), fn ($query) => $query->whereDate('created_at', '<=', $request->query('to')))->count(),
             ],
             'creator-load-save', 'ai-translation', 'lint-definition' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
             'creator-uploads' => [
