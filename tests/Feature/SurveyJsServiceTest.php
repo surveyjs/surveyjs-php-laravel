@@ -206,6 +206,30 @@ class SurveyJsServiceTest extends TestCase
         $this->assertSame('%PDF-1.7 fake', $response->getContent());
     }
 
+    public function test_pdf_generation_uses_the_recorded_schema_version_and_saved_answers(): void
+    {
+        $claim = DB::table('responses')->where('form_id', 'claim')->where('definition_version', 'v2')->first();
+        Http::fake([self::SERVICE.'/pdf' => Http::response('%PDF-1.7 fake', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->get("/api/claims/{$claim->id}/pdf")->assertOk()->assertHeader('Content-Disposition', "inline; filename=\"claim-{$claim->id}.pdf\"");
+        Http::assertSent(fn ($request) => json_decode($request->body(), true)['schema']['elements'][0]['elements'][0]['name'] === 'contact_email'
+            && json_decode($request->body(), true)['response'] === json_decode($claim->data, true));
+    }
+
+    public function test_a_pdf_content_type_without_pdf_bytes_is_rejected(): void
+    {
+        Http::fake([self::SERVICE.'/pdf' => Http::response('Not a PDF', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->getJson("/api/claims/{$this->claimId()}/pdf")->assertStatus(502);
+    }
+
+    public function test_an_unknown_claim_schema_version_is_not_silently_replaced(): void
+    {
+        $id = $this->claimId();
+        DB::table('responses')->where('id', $id)->update(['definition_version' => 'v99']);
+        Http::fake();
+        $this->getJson("/api/claims/{$id}/pdf")->assertStatus(409);
+        Http::assertNothingSent();
+    }
+
     public function test_iv3_a_200_with_the_wrong_content_type_is_not_a_pdf(): void
     {
         Http::fake([self::SERVICE.'/pdf' => Http::response(['error' => 'schema is required'], 200)]);
