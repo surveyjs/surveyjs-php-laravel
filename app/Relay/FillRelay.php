@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Relay;
 
 use App\Http\Middleware\DemoUser;
+use App\Integration\StoredJson;
+use App\Support\Sandbox;
 use Illuminate\Support\Facades\DB;
 use stdClass;
+use Throwable;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request;
 use Workerman\Timer;
@@ -19,8 +22,7 @@ use Workerman\Timer;
 final class FillRelay
 {
     // #region sjs:fill-together.server
-    // The relay, run as its own process: php artisan relay:fill (PHP-FPM can't hold connections).
-    // No SurveyJS here: the definition and the answers are opaque JSON.
+    // Run the relay as its own process and relay JSON: php artisan relay:fill
     private array $rooms = [];   // room key => Room { seed, values, clients }
 
     public function onConnect(TcpConnection $c, Request $request): void
@@ -43,7 +45,8 @@ final class FillRelay
         $room->clients[$c->id] = $c;
         $this->send($c, ['type' => 'init', 'clientId' => $c->context->id, 'name' => $c->context->name,
             'colorIndex' => Room::colorIndex($c->context->slot), 'seed' => $room->seed,
-            'values' => $room->snapshot(), 'peers' => $room->roster($c)]);          // init first
+            'values' => $room->snapshot(), 'peers' => $room->roster($c),
+            'sessionId' => $room->sessionId, 'responseId' => $room->responseId]);
     }
 
     public function onMessage(TcpConnection $from, string $raw): void
@@ -53,7 +56,9 @@ final class FillRelay
         if (! $room || ! $msg instanceof stdClass) {
             return;
         }
-        if (($msg->type ?? '') === 'value' && is_string($msg->key ?? null)) {   // store, then fan out
+        if (($msg->type ?? '') === 'complete' && ($msg->data ?? null) instanceof stdClass) {
+            $this->complete($from, $room, $msg->data);
+        } elseif (($msg->type ?? '') === 'value' && is_string($msg->key ?? null) && $room->responseId === null) {
             $room->values[$msg->key] = $msg->value ?? null;
             $room->broadcast($from, ['type' => 'value', 'from' => $from->context->id, 'key' => $msg->key, 'value' => $msg->value ?? null]);
         } elseif (($msg->type ?? '') === 'presence' && isset($msg->state) && strlen($raw) <= 4096) {   // stamp identity, relay
@@ -75,6 +80,28 @@ final class FillRelay
         $room->broadcast($c, ['type' => 'peer-left', 'clientId' => $c->context->id]);
         if (count($room->clients) === 0) {                                      // drop the room 2 s after the last person leaves
             $room->dropTimer = Timer::add(2, fn () => count($room->clients) === 0 && $this->drop($c->context->roomKey), [], false);
+        }
+    }
+    // #endregion
+
+    // #region sjs:fill-together.complete
+    // Save once per room session and send the same confirmation to every participant
+    private function complete(TcpConnection $from, Room $room, stdClass $data): void
+    {
+        try {
+            if ($room->responseId === null) {
+                if (config('surveyjs.demo_mode')) {
+                    Sandbox::activate(explode(':', $from->context->roomKey, 2)[0]);
+                }
+                $room->responseId = StoredJson::insertResponse('job-sheet', $data);
+                $room->values = (array) $data;
+            }
+            foreach ($room->clients as $client) {
+                $this->send($client, ['type' => 'completed', 'id' => $room->responseId, 'data' => $room->snapshot()]);
+            }
+        } catch (Throwable $e) {
+            report($e);
+            $this->send($from, ['type' => 'save-error', 'error' => "Couldn't save the job sheet. Please try again."]);
         }
     }
     // #endregion

@@ -37,7 +37,7 @@ class RelayFill extends Command
         });
         $worker->onMessage = fn (TcpConnection $c, string $data) => $this->guard($c, function () use ($relay, $c, $data) {
             $relay->onMessage($c, $data);
-            if (str_contains($data, '"value"')) {
+            if (in_array(json_decode($data)->type ?? null, ['value', 'complete'], true)) {
                 $this->snapshot($relay, $c);
             }
         });
@@ -75,6 +75,7 @@ class RelayFill extends Command
             RoomKey::writeSnapshot($c->context->roomKey, 'fill', [
                 'participants' => count($room->clients),
                 'values' => $room->snapshot(),
+                'responseId' => $room->responseId,
             ]);
         }
     }

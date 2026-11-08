@@ -1,11 +1,12 @@
 {
   "title": "Job sheet",
+  "completeText": "Finish job sheet",
   "description": "Filled together by the dispatcher and the technician",
   "elements": [
     {
       "type": "panel", "name": "dispatch", "title": "Dispatcher",
       "elements": [
-        { "type": "text", "name": "customer", "title": "Customer" },
+        { "type": "text", "name": "customer", "title": "Customer", "isRequired": true },
         { "type": "text", "name": "address", "title": "Site address" },
         { "type": "dropdown", "name": "job_type", "title": "Job type", "choices": ["Installation", "Repair", "Inspection"] },
         { "type": "comment", "name": "dispatch_notes", "title": "Notes for the technician" }

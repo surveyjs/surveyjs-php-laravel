@@ -207,7 +207,9 @@
       },
       "regions": [
         "fill-together.client",
-        "fill-together.server"
+        "fill-together.save",
+        "fill-together.server",
+        "fill-together.complete"
       ],
       "see": "https://github.com/surveyjs/collaborative-form-filling"
     },

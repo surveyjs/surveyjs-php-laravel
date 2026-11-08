@@ -21,6 +21,10 @@ final class Room
 
     public ?int $dropTimer = null;
 
+    public ?int $responseId = null;
+
+    public readonly string $sessionId;
+
     /** Someone joined an emptied room before it was dropped: keep it. */
     public function cancelDrop(): void
     {
@@ -33,6 +37,7 @@ final class Room
     public function __construct(public readonly object $seed, array $values = [])
     {
         $this->values = $values;
+        $this->sessionId = bin2hex(random_bytes(16));
     }
 
     /** The lowest colour slot nobody in the room holds, shown as 1..9 (0 means "unknown"). */

@@ -386,7 +386,8 @@ for (const link of document.querySelectorAll("[data-invite-link]")) {
   else link.href = inviteLink();
 }
 document.querySelector("[data-copy-invite]")?.addEventListener("click", async (e) => {
-  await navigator.clipboard?.writeText(inviteLink());
+  const link = document.querySelector('input[data-invite-link]')?.value ?? inviteLink();
+  await navigator.clipboard?.writeText(link);
   e.currentTarget.dataset.copied = "true";
 });
 
