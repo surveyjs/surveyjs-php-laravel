@@ -1,8 +1,10 @@
 {
-  "title": "Book a visit",
+  "title": "Choose an office",
+  "completeText": "Review selection",
+  "completedHtml": "<h3>Your selection is ready.</h3><p>The selected values are shown above.</p>",
   "elements": [
     {
-      "type": "panel", "name": "find_office", "title": "Find an office",
+      "type": "panel", "name": "find_office",
       "elements": [
         {
           "type": "radiogroup", "name": "region", "title": "Region", "colCount": 3, "defaultValue": "europe", "isRequired": true,
@@ -19,7 +21,7 @@
       ]
     },
     {
-      "type": "dropdown", "name": "country", "title": "Country", "isRequired": true,
+      "type": "dropdown", "name": "country", "title": "Your country", "isRequired": true,
       "choicesByUrl": { "url": "/api/countries", "valueName": "code", "titleName": "name" }
     }
   ]
