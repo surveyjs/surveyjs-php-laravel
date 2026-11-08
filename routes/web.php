@@ -29,6 +29,7 @@ Route::get('/shared/{path}', function (string $path) {
         'js', 'mjs' => 'text/javascript; charset=utf-8',
         'json' => 'application/json',
         'png' => 'image/png',
+        'svg' => 'image/svg+xml',
         'jpg', 'jpeg' => 'image/jpeg',
         'pdf' => 'application/pdf',
         default => 'application/octet-stream',

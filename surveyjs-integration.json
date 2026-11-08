@@ -271,10 +271,13 @@
       "need": "Form authors need to add logos, images, or other files.",
       "licence": "Commercial client",
       "endpoints": [
-        "POST /api/files"
+        "POST /api/files",
+        "GET /api/files/{id}",
+        "GET /api/forms/{id}",
+        "PUT /api/forms/{id}"
       ],
       "files": {
-        "definition": "shared/definitions/creator-load-save.json",
+        "definition": "shared/definitions/creator-uploads.json",
         "client": "shared/client/creator-uploads.js",
         "page": "resources/views/examples/creator-uploads.blade.php"
       },

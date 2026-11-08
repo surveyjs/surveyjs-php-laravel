@@ -194,7 +194,7 @@ final class Demo
             ],
             'creator-load-save', 'ai-translation', 'lint-definition' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
             'creator-uploads' => [
-                'logo in the JSON schema' => json_decode((string) DB::table('forms')->where('key', 'support')->value('json'))->logo ?? null,
+                'forms' => self::documents('forms', 'support-assets'),
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(5)->get(['id', 'name', 'type']),
             ],
             'variable-presets' => ['variable_presets' => self::documents('variable_presets', $request->query('key', 'support'))],

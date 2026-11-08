@@ -9,5 +9,6 @@
   "job-sheet": "fill-together.json",
   "feedback": "dashboard.json",
   "support": "creator-load-save.json",
+  "support-assets": "creator-uploads.json",
   "work-order": "extract-from-paper.json"
 }

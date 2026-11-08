@@ -24,7 +24,7 @@ async function chooseImage(page, slug) {
 
 async function mockCreator(page) {
     const savedDefinitions = [];
-    await page.route('**/api/forms/support', async (route) => {
+    await page.route('**/api/forms/support-assets', async (route) => {
         if (route.request().method() === 'GET') return route.fulfill({ json: { definition: creatorDefinition } });
         savedDefinitions.push(route.request().postDataJSON());
         return route.fulfill({ status: 204 });
