@@ -383,6 +383,7 @@
       },
       "regions": [
         "validate-response.client",
+        "validate-response.request",
         "validate-response.server"
       ]
     },

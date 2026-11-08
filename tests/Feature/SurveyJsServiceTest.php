@@ -79,6 +79,15 @@ class SurveyJsServiceTest extends TestCase
             && json_decode($request->body(), true)['response'] === self::CLAIM);
     }
 
+    public function test_invalid_response_envelopes_never_reach_the_validator_or_storage(): void
+    {
+        Http::fake();
+        foreach ([[], ['formId' => ['claim'], 'data' => new \stdClass], ['formId' => 'claim', 'data' => 'answers']] as $payload) {
+            $this->assertNothingSaved('responses', fn () => $this->postJson('/api/responses', $payload)->assertStatus(400));
+        }
+        Http::assertNothingSent();
+    }
+
     public function test_iv1_answers_that_dont_fit_are_refused_with_the_errors(): void
     {
         $errors = [['type' => 'invalidChoiceValue', 'path' => 'incident', 'value' => 'meteor']];
