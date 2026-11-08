@@ -257,6 +257,7 @@
       },
       "regions": [
         "creator-load-save.client",
+        "creator-load-save.load",
         "creator-load-save.server"
       ]
     },
