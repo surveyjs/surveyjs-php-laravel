@@ -1,8 +1,4 @@
 /* SurveyJS Dashboard's theme, for the Analyze Results with Dashboard page */
 @import 'survey-core/survey-core.css';
 @import 'survey-analytics/survey.analytics.css';
-
-/* Use the portal's Tailwind font stack for Dashboard controls and charts */
-.sd-theme-root {
-    --sjs2-typography-font-family-text: var(--font-sans);
-}
+@import 'survey-core/themes/adapters/tailwind4.css';

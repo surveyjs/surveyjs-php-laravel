@@ -13,6 +13,7 @@ const openSaved = document.getElementById("open-saved-form");
 const restore = document.getElementById("restore-sample");
 let loaded = false;
 let busy = false;
+let saveDenied = !page.user?.isEditor;
 
 // The relational-storage custom property: it shows in the property grid's Data category
 Serializer.addProperty("question", { name: "dbColumn", category: "data" });
@@ -26,6 +27,7 @@ const saver = createSchemaSaver(() => creator.JSON, async json => {
     headers: { "Content-Type": "application/json" },
     body: json
   });
+  if ([401, 403].includes(response.status)) saveDenied = true;
   if (!response.ok) throw await responseError(response, "Couldn't save the form schema. Please try again.");
 }, updateSaveState);
 creator.saveSurveyFunc = (saveNo, callback) => {
@@ -36,7 +38,7 @@ creator.saveSurveyFunc = (saveNo, callback) => {
 function setBusy(value) {
   busy = value;
   element.inert = value;
-  for (const control of [restore, document.getElementById("demo-user")]) if (control) control.disabled = value || !loaded || (control === restore && !page.user?.isEditor);
+  for (const control of [restore, document.getElementById("demo-user")]) if (control) control.disabled = value || !loaded || (control === restore && saveDenied);
   if (openSaved) openSaved.setAttribute("aria-disabled", String(value || !loaded));
   retrySave.disabled = value;
 }
@@ -46,9 +48,9 @@ function updateSaveState({ state, error }) {
   const message = state === "saving" ? "Saving changes..." : state === "saved" ? "All changes saved."
     : state === "error" ? `${error} Your changes remain in this editor.` : "Unsaved changes. Saving shortly...";
   show("schema-status", message);
-  retrySave.hidden = state !== "error";
+  retrySave.hidden = state !== "error" || saveDenied;
   if (state === "error") creator.notify(error, "error");
-  if (restore) restore.disabled = busy || state === "saving" || !page.user?.isEditor;
+  if (restore) restore.disabled = busy || state === "saving" || saveDenied;
 }
 
 // #region sjs:creator-load-save.load
@@ -82,6 +84,7 @@ openSaved?.addEventListener("click", async event => {
   if (busy || !loaded) return;
   const tab = window.open("", "_blank");
   if (!tab) { show("schema-status", "Allow pop-ups to open the saved form."); return; }
+  if (saveDenied) { tab.location.href = new URL("?form", location.href).href; return; }
   setBusy(true);
   creator.saveSurvey();
   const saved = await saver.save();

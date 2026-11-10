@@ -15,7 +15,7 @@
 
 @section('actions')
     @if (request()->has('form'))
-        <a href="?" class="text-sjs-dark underline">Back to editor</a>
+        <a id="back-to-editor" href="?" class="text-sjs-dark underline">Back to editor</a>
     @else
         <a id="open-saved-form" href="?form" target="_blank" aria-disabled="true" class="inline-flex h-9 items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 no-underline hover:bg-gray-100 aria-disabled:opacity-50">Open saved form</a>
     @endif

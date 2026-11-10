@@ -57,6 +57,11 @@ test('a question image persists as a URL and appears in the saved form preview',
     await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
     const popup = await opened;
     await expect(popup.getByRole('img', { name: 'Support resources', exact: true })).toHaveAttribute('src', '/api/files/question-image');
+    const closed = popup.waitForEvent('close');
+    await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
+    await closed;
+    await expect(page.locator('#creator')).toBeVisible();
+    expect(context.pages()).toEqual([page]);
 });
 
 test('unsupported image files are rejected before any upload or schema save', async ({ page }) => {

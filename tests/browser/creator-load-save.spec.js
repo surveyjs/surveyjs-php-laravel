@@ -62,6 +62,10 @@ test('opening the form waits for save confirmation and renders the saved schema'
     expect(popup.url()).toBe('about:blank');
     pending.resolve();
     await expect(popup.locator('#creator .sd-title').first()).toContainText('Saved preview title');
+    const closed = popup.waitForEvent('close');
+    await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
+    await closed;
+    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText('Saved preview title');
 });
 
 test('save failures retain edits, retry saves them, and restore sample persists the original form', async ({ page }) => {
@@ -85,14 +89,61 @@ test('save failures retain edits, retry saves them, and restore sample persists 
     await expect.poll(() => saved.title).toBe(sample.title);
 });
 
-test('viewer edits are clearly unsaved and restoring the stored sample is unavailable', async ({ context, page }) => {
+test('Bob can open the saved form before and after denied edits without a save retry', async ({ context, page }) => {
     await context.addCookies([{ name: 'demo_user', value: 'bob', url: 'http://127.0.0.1:8000' }]);
-    await page.route('**/api/forms/support', route => route.request().method() === 'GET'
-        ? route.fulfill({ json: { definition: sample } })
-        : route.fulfill({ status: 403, json: { error: "You don't have editor rights" } }));
+    let writes = 0;
+    await context.route('**/api/forms/support', route => {
+        if (route.request().method() === 'GET') return route.fulfill({ json: { definition: sample } });
+        writes++;
+        return route.fulfill({ status: 403, json: { error: "You don't have editor rights" } });
+    });
     await page.goto('/examples/creator-load-save');
-    await title(page, 'Unsaved viewer edit');
+    const openForm = async () => {
+        const opened = page.waitForEvent('popup');
+        await page.getByRole('link', { name: 'Open the form', exact: true }).click();
+        const popup = await opened;
+        await expect(popup.locator('#creator .sd-title').first()).toHaveText(sample.title);
+        const closed = popup.waitForEvent('close');
+        await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
+        await closed;
+        expect(context.pages()).toEqual([page]);
+    };
+    await openForm();
+    expect(writes).toBe(0);
+    await title(page, 'Unsaved local edit');
     await expect(page.locator('[data-show="schema-status"]')).toContainText("You don't have editor rights");
-    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText('Unsaved viewer edit');
+    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText('Unsaved local edit');
     await expect(page.getByRole('button', { name: 'Restore sample', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Try saving again', exact: true })).toBeHidden();
+    await openForm();
+    expect(writes).toBe(1);
+    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText('Unsaved local edit');
+});
+
+test('a server permission denial hides retry even when the page initially allowed saving', async ({ context, page }) => {
+    let writes = 0;
+    await context.route('**/api/forms/support', route => {
+        if (route.request().method() === 'GET') return route.fulfill({ json: { definition: sample } });
+        writes++;
+        return route.fulfill({ status: 403, json: { error: 'Saving is not allowed.' } });
+    });
+    await page.goto('/examples/creator-load-save');
+    await title(page, 'Permission denied edit');
+    await expect(page.locator('[data-show="schema-status"]')).toContainText('Saving is not allowed.');
+    await expect(page.getByRole('button', { name: 'Try saving again', exact: true })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Restore sample', exact: true })).toBeDisabled();
+    const opened = page.waitForEvent('popup');
+    await page.getByRole('link', { name: 'Open the form', exact: true }).click();
+    const popup = await opened;
+    await expect(popup.locator('#creator .sd-title').first()).toHaveText(sample.title);
+    expect(writes).toBe(1);
+});
+
+test('a directly opened form returns to the editor in the same tab', async ({ page }) => {
+    await page.route('**/api/forms/support', route => route.fulfill({ json: { definition: sample } }));
+    await page.goto('/examples/creator-load-save?form');
+    await expect(page.locator('#creator .sd-title').first()).toHaveText(sample.title);
+    await page.getByRole('link', { name: 'Back to editor', exact: true }).click();
+    await expect(page).toHaveURL(url => url.pathname === '/examples/creator-load-save' && !url.searchParams.has('form'));
+    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText(sample.title);
 });

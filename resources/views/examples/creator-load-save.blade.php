@@ -1,7 +1,7 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Load and save form schemas as authors edit in Survey Creator. Changes can be saved automatically, with editing permissions checked by the backend and save errors reported to the author.</p>
+    <p>Load form JSON schemas from your backend into Survey Creator and save changes automatically. The backend checks each user's permission to save, so users without save access can edit locally while the stored schema stays unchanged.</p>
 @endsection
 
 {{-- "Open the form" (?form) renders the saved definition with the Form Library, so it loads the form theme --}}
@@ -9,14 +9,24 @@
 
 @section('try')
     <li>As <strong>Alice</strong>, change the form title or a question in the Designer. The status above the editor confirms when the backend has saved your changes.</li>
-    <li>Press <strong>Open the form</strong>. Pending changes are saved before a new tab opens the saved version.</li>
-    <li>Switch <strong>Demo user</strong> to <strong>Bob</strong> and edit the form. The backend rejects the save, and the status explains that those changes remain only in the current editor.</li>
-    <li>Open <strong>Requests</strong> to inspect the loaded schema and save requests. As Alice, press <strong>Restore sample</strong> to replace the saved schema with the original example.</li>
+    <li>Switch <strong>Demo user</strong> to <strong>Bob</strong> and edit the form. You can make changes locally, but the backend rejects attempts to save them.</li>
+    <li>Press <strong>Open the form</strong> to view the saved version in a new tab. Alice's pending changes are saved first; Bob opens the version already stored on the server.</li>
+    <li>Open <strong>Requests</strong> to inspect the loaded schema and save requests. As Alice, you can press <strong>Restore sample</strong> to replace the saved schema with the original example.</li>
+@endsection
+
+@section('demo-user-control')
+    <label class="flex items-center gap-2">
+        <span class="text-gray-600">Demo user</span>
+        <select id="demo-user" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
+            <option value="alice" @selected(auth()->user()?->email === 'alice@example.com')>Alice (can save schemas)</option>
+            <option value="bob" @selected(auth()->user()?->email === 'bob@example.com')>Bob (cannot save schemas)</option>
+        </select>
+    </label>
 @endsection
 
 @section('actions')
     @if (request()->has('form'))
-        <a href="?" class="text-sjs-dark underline">Back to editor</a>
+        <a id="back-to-editor" href="?" class="text-sjs-dark underline">Back to editor</a>
     @else
     <a id="open-saved-form" aria-disabled="true" href="?form" target="_blank" class="box-border inline-flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 no-underline hover:bg-gray-100 aria-disabled:opacity-50">
         Open the form
