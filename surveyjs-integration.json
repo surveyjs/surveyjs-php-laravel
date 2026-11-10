@@ -122,7 +122,8 @@
       "licence": "MIT",
       "endpoints": [
         "GET /api/offices",
-        "GET /api/countries"
+        "GET /api/countries",
+        "POST /api/responses"
       ],
       "files": {
         "definition": "shared/definitions/choices-from-web.json",

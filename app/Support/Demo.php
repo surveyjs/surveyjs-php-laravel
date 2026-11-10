@@ -174,6 +174,7 @@ final class Demo
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(10)->get(['id', 'name', 'type']),
             ],
             'choices-from-web' => [
+                'responses' => self::responses('visit', $id, 3),
                 'offices' => DB::table('offices')->orderBy('region')->orderBy('name')->get(),
                 'countries cache' => Cache::has('countries') ? 'cached for 24 hours' : 'empty: the next request fetches restcountries.com',
             ],
