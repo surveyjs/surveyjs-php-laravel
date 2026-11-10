@@ -186,7 +186,6 @@
         {{-- CODE: the step's regions at the column's width; it scrolls with the page --}}
         <div id="panel-code" role="tabpanel" aria-labelledby="tab-code" hidden class="p-4 text-sm lg:p-6">
             <p class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['server'] ?? $step['files']['client'] }}" target="_blank">Source on GitHub</a>
                 @isset($step['files']['definition'])
                     <span>Definition: <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definition'] }}" target="_blank"><code>{{ $step['files']['definition'] }}</code></a>@isset($step['files']['definitionV2']), <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definitionV2'] }}" target="_blank"><code>{{ $step['files']['definitionV2'] }}</code></a>@endisset</span>
                 @endisset
