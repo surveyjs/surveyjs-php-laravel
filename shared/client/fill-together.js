@@ -20,17 +20,15 @@ function partnerLink() {
   return url.href;
 }
 for (const link of document.querySelectorAll("[data-invite-link]")) {
-  if (link.tagName === "INPUT") link.value = partnerLink();
-  else link.href = partnerLink();
+  link.href = partnerLink();
 }
 document.getElementById("participant-role").value = role.toLowerCase();
-show("room", `${role} · ${recordId === "new" || recordId.startsWith("new-") ? "New job sheet" : `Job sheet #${recordId}`}`);
 setStoredQuery({ room: recordId });
 
 function setLocked(locked) {
   form.inert = locked;
   form.setAttribute("aria-busy", String(locked));
-  for (const id of ["record", "participant-role", "new-job-sheet"]) document.getElementById(id).disabled = locked;
+  for (const id of ["record", "participant-role"]) document.getElementById(id).disabled = locked;
 }
 function status(message, error = false) {
   show("connection-status", message);
@@ -142,9 +140,9 @@ document.getElementById("participant-role").addEventListener("change", event => 
   url.searchParams.set("role", event.target.value);
   location.assign(url);
 });
-document.getElementById("new-job-sheet").addEventListener("click", () => {
+document.getElementById("record").addEventListener("change", event => {
   const url = new URL(location.href);
-  url.searchParams.set("record", `new-${crypto.randomUUID()}`);
+  url.searchParams.set("record", event.target.value || `new-${crypto.randomUUID()}`);
   location.assign(url);
 });
 connect();

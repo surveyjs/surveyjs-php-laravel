@@ -19,7 +19,30 @@ test('failed initial connection shows reconnect and blocks editing until the sha
     await expect(page.getByRole('textbox', { name: /^Customer/ })).toHaveValue('Shared customer');
     await expect(page.locator('#record')).toBeEnabled();
     await expect(page.locator('[data-show="connection-status"]')).toContainText('Connected as Dispatcher');
-    await expect(page.locator('[data-invite-link]').first()).toHaveValue(/role=technician/);
+    await expect(page.locator('a[data-invite-link]')).toHaveAttribute('href', /role=technician/);
+    await expect(page.locator('#actions').getByRole('combobox')).toHaveCount(2);
+    await expect(page.locator('#actions').getByRole('link')).toHaveCount(1);
+    await expect(page.locator('#actions').locator('input, button')).toHaveCount(0);
+});
+
+test('Record can start fresh sessions repeatedly while keeping the selected role and partner link', async ({ page }) => {
+    await page.routeWebSocket(/\/ws\/rooms\//, socket => socket.send(JSON.stringify(init())));
+    await page.goto('/examples/fill-together?record=new&role=technician');
+    const record = page.getByRole('combobox', { name: 'Record', exact: true });
+    await expect(record).toBeEnabled();
+    await record.selectOption('');
+    await page.waitForURL(url => /^new-/.test(url.searchParams.get('record')));
+    const firstRoom = new URL(page.url()).searchParams.get('record');
+    await expect(page.getByRole('combobox', { name: 'Role', exact: true })).toHaveValue('technician');
+    await expect(record).toBeEnabled();
+    const partner = new URL(await page.getByRole('link', { name: 'Open a second window', exact: true }).getAttribute('href'));
+    expect(partner.searchParams.get('record')).toBe(firstRoom);
+    expect(partner.searchParams.get('role')).toBe('dispatcher');
+    await record.selectOption('');
+    await page.waitForURL(url => url.searchParams.get('record') !== firstRoom);
+    await expect(record).toBeEnabled();
+    expect(new URL(page.url()).searchParams.get('record')).toMatch(/^new-/);
+    expect(new URL(page.url()).searchParams.get('role')).toBe('technician');
 });
 
 test('two participants share answers and see the same completed response, including a late joiner', async ({ context }) => {
