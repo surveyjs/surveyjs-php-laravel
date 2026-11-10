@@ -34,7 +34,15 @@
             <span class="max-lg:hidden">{{ \App\Support\Demo::TITLE }}</span>
         </a>
         <span aria-hidden="true" class="text-gray-300 max-lg:hidden">/</span>
-        <h1 class="min-w-0 truncate text-base font-semibold text-gray-900">{{ $step['title'] }}</h1>
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 class="min-w-0 max-w-full truncate text-base font-semibold text-gray-900">{{ $step['title'] }}</h1>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-lg px-2 py-1 text-xs font-semibold whitespace-nowrap {{ $commercial ? 'bg-sjs-yellow-10 text-sjs-yellow' : 'bg-sjs-10 text-sjs' }}">{{ $commercial ? 'Commercial' : 'MIT' }}</span>
+                @if (str_contains($step['licence'], 'needs an AI provider'))
+                    <span class="rounded-lg bg-sjs-violet-10 px-2 py-1 text-xs font-semibold whitespace-nowrap text-sjs-violet">AI Provider Required</span>
+                @endif
+            </div>
+        </div>
     </div>
 
     @if (request()->attributes->get('demo_join_failed'))
@@ -102,7 +110,7 @@
                 @endif
 
                 @if ($commercial)
-                    <p class="text-sm text-gray-600">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner.</p>
+                    <p class="text-sm text-gray-600">SurveyJS commercial products require a developer license for production use. See <a class="text-sjs-dark underline" href="https://surveyjs.io/licensing" target="_blank" rel="noopener">SurveyJS Licensing</a> for details.</p>
                 @endif
             </div>
 
@@ -183,9 +191,6 @@
 
         {{-- CODE: the step's regions at the column's width; it scrolls with the page --}}
         <div id="panel-code" role="tabpanel" aria-labelledby="tab-code" hidden class="p-4 text-sm lg:p-6">
-            @if ($commercial)
-                <p class="mb-3 text-sm text-gray-500">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner</p>
-            @endif
             <div class="grid gap-4">
                 @foreach (\App\Support\Demo::codeDefinitions($step) as $definition)
                     <details data-definition-code class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
