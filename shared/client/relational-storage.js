@@ -18,6 +18,17 @@ survey.completeText = "Submit claim";
 // #endregion
 
 // #region sjs:relational-storage.save
+async function saveClaim(data, definitionVersion) {
+  const response = await fetch("/api/claims", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, definitionVersion })
+  });
+  if (!response.ok) throw new Error("Save failed");
+  return response.json();
+}
+// #endregion
+
 // Confirm the saved response ID before reporting that its columns were populated
 survey.onComplete.add(async (sender, options) => {
   responseId = null;
@@ -25,11 +36,7 @@ survey.onComplete.add(async (sender, options) => {
   sender.completedHtml = "<h3>Saving your claim...</h3>";
   options.showSaveInProgress();
   try {
-    const response = await fetch("/api/claims", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: sender.data, definitionVersion })
-    });
-    const result = response.ok ? await response.json() : null;
+    const result = await saveClaim(sender.data, definitionVersion);
     if (!Number.isInteger(result?.id) || result.id < 1) throw new Error("Save failed");
     responseId = result.id;
     awaitingReadback = true;
@@ -41,8 +48,6 @@ survey.onComplete.add(async (sender, options) => {
     options.showSaveError("We couldn't save your claim. Please try again.");
   }
 });
-// #endregion
-
 mountSurvey(survey);
 
 // Demo only: show the mapping directly from the selected definition

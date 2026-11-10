@@ -8,7 +8,7 @@
 @endsection
 
 @section('try')
-    <li>In <strong>v1</strong>, enter an email and amount, then press <strong>Submit claim</strong>. The confirmation shows the saved response ID. Open <strong>Data</strong> to compare the original answers with the database columns.</li>
+    <li>In <strong>JSON schema v1</strong>, enter an email and amount, then press <strong>Submit claim</strong>. The confirmation shows the saved response ID. Open <strong>Data</strong> to compare the original answers with the database columns.</li>
     <li>Switch <strong>JSON schema</strong> to <strong>v2</strong>. The mapping table shows new question names with the same answer keys and database columns. Submit another claim to see that the mapping still works.</li>
     <li>Inspect <strong>Data</strong>: each response keeps its schema version and original JSON, including answers that aren't copied into columns.</li>
     <li>Press <strong>Start over</strong> to submit another claim with the selected schema version.</li>
@@ -17,7 +17,7 @@
 @section('actions')
     <span class="text-gray-600">JSON schema</span>
     <span class="box-border inline-flex h-9 items-stretch rounded-md border border-gray-300 bg-white p-0.5">
-        @foreach (['v1' => 'v1: original questions', 'v2' => 'v2: renamed questions'] as $v => $label)
+        @foreach (['v1' => 'v1: Original form', 'v2' => 'v2: Redesigned form'] as $v => $label)
             <a data-definition-version href="?version={{ $v }}" @if ($version === $v) aria-current="page" @endif @class(['flex items-center rounded px-2.5 no-underline aria-disabled:opacity-50', 'bg-sjs-dark text-white' => $version === $v, 'text-gray-700 hover:bg-gray-100' => $version !== $v])>{{ $label }}</a>
         @endforeach
     </span>

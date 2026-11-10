@@ -7,6 +7,8 @@ for (const width of [1440, 390]) {
         await page.goto('/examples/relational-storage#code');
         const codeSections = page.locator('#panel-code [data-code-section]');
         await expect(codeSections).toHaveCount(3);
+        await expect(codeSections.nth(1).locator('pre')).toContainText('async function saveClaim(data, definitionVersion)');
+        await expect(codeSections.nth(1).locator('pre')).not.toContainText('onComplete');
         for (const section of await codeSections.all()) {
             await expect(section).toHaveAttribute('open');
             await expect(section.locator('pre')).toBeVisible();
