@@ -1,7 +1,7 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Use backend data in calculations and validation, such as checking email availability. The form requests the needed information and updates its calculations or error messages when the server responds.</p>
+    <p>Use backend data in calculations and validation. The form requests the needed information and updates its calculations or error messages when the server responds.</p>
 @endsection
 
 @section('try')
