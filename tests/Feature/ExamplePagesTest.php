@@ -132,6 +132,27 @@ class ExamplePagesTest extends TestCase
     }
 
     #[DataProvider('steps')]
+    public function test_code_definitions_are_collapsed_and_match_the_source_files(string $slug): void
+    {
+        $html = $this->withoutVite()->get('/examples/'.$slug)->assertOk()->getContent();
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $sections = $xpath->query('//*[@id="panel-code"]//details[@data-definition-code]');
+        $paths = collect(Demo::step($slug)['files'])->filter(fn ($path, $key) => str_starts_with($key, 'definition'))->values();
+
+        $this->assertCount($paths->count(), $sections);
+        foreach ($paths as $index => $path) {
+            $section = $sections->item($index);
+            $this->assertFalse($section->hasAttribute('open'));
+            $this->assertSame(trim(file_get_contents(base_path($path))), $section->getElementsByTagName('code')->item(1)->textContent);
+            $this->assertStringContainsString($path, $section->getElementsByTagName('summary')->item(0)->textContent);
+            $this->assertCount(0, $section->getElementsByTagName('a'));
+        }
+        $this->assertCount(0, $xpath->query('//*[@id="panel-code"]//a[contains(@href, "/shared/definitions/")]'));
+    }
+
+    #[DataProvider('steps')]
     public function test_every_step_page_links_to_its_docs_section_once(string $slug): void
     {
         $docs = Demo::docsUrl(Demo::step($slug));

@@ -100,6 +100,15 @@ final class Demo
         return array_map(fn (array $found) => count($found) === 1 ? $found[0] : ['duplicate' => count($found)] + $found[0], $regions);
     }
 
+    /** The JSON definitions displayed in collapsible sections in the Code tab. */
+    public static function codeDefinitions(array $step): array
+    {
+        return collect($step['files'])
+            ->filter(fn (string $path, string $key) => str_starts_with($key, 'definition'))
+            ->map(fn (string $path) => ['path' => $path, 'code' => trim((string) file_get_contents(base_path($path)))])
+            ->values()->all();
+    }
+
     /** The regions a step lists in the manifest, ready for the code panel. */
     public static function codePanel(array $step): array
     {

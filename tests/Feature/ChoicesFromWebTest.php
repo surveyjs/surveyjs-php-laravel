@@ -14,15 +14,11 @@ class ChoicesFromWebTest extends TestCase
 
     protected bool $seed = true;
 
-    public function test_code_tab_omits_the_schema_and_completion_handler(): void
+    public function test_code_tab_keeps_the_completion_handler_hidden(): void
     {
         $html = $this->withoutVite()->get('/examples/choices-from-web')->assertOk()->getContent();
         $document = new \DOMDocument;
         @$document->loadHTML($html);
-        $xpath = new \DOMXPath($document);
-        $blocks = $xpath->query('//*[@id="panel-code"]//pre/code[contains(@class, "language-json")]');
-
-        $this->assertCount(0, $blocks);
         $this->assertStringContainsString('sjs:choices-from-web.client', $document->getElementById('panel-code')->textContent);
         $this->assertStringNotContainsString('onComplete', $document->getElementById('panel-code')->textContent);
     }

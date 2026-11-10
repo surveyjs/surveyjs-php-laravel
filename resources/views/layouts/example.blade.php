@@ -4,12 +4,10 @@
      on the left; narrower, it opens as a full-screen sheet. The explanation is in the docs; the integration code is
      in the step's files. --}}
 @php
-    $manifest = \App\Support\Demo::manifest();
     $config = \App\Support\Demo::pageConfig($step);
     $users = \App\Http\Middleware\DemoUser::forPage($step['slug']);
     $commercial = str_starts_with($step['licence'], 'Commercial');
     $theme = trim($__env->yieldContent('theme', 'survey'));
-    $blob = config('surveyjs.github').'/blob/'.$manifest['branch'];
     $hasActions = count($users) > 1 || trim($__env->yieldContent('actions')) !== '';
     $hasReadouts = trim($__env->yieldContent('readouts')) !== '';
     // The tab buttons of both columns (design 02's header tabs)
@@ -185,15 +183,18 @@
 
         {{-- CODE: the step's regions at the column's width; it scrolls with the page --}}
         <div id="panel-code" role="tabpanel" aria-labelledby="tab-code" hidden class="p-4 text-sm lg:p-6">
-            <p class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                @isset($step['files']['definition'])
-                    <span>Definition: <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definition'] }}" target="_blank"><code>{{ $step['files']['definition'] }}</code></a>@isset($step['files']['definitionV2']), <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definitionV2'] }}" target="_blank"><code>{{ $step['files']['definitionV2'] }}</code></a>@endisset</span>
-                @endisset
-                @if ($commercial)
-                    <span class="text-gray-500">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner</span>
-                @endif
-            </p>
+            @if ($commercial)
+                <p class="mb-3 text-sm text-gray-500">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner</p>
+            @endif
             <div class="grid gap-4">
+                @foreach (\App\Support\Demo::codeDefinitions($step) as $definition)
+                    <details data-definition-code class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
+                        <summary class="cursor-pointer px-4 py-3 text-xs text-gray-300 hover:bg-gray-800/60 focus-visible:outline-2 focus-visible:outline-sjs">
+                            <span class="font-semibold text-white">JSON definition</span> · <code class="[overflow-wrap:anywhere]">{{ $definition['path'] }}</code>
+                        </summary>
+                        <pre class="m-0 overflow-x-auto border-t border-gray-800 p-0 text-[12.5px] leading-relaxed"><code class="language-json block !bg-transparent p-4">{{ $definition['code'] }}</code></pre>
+                    </details>
+                @endforeach
                 @foreach (\App\Support\Demo::codePanel($step) as $region)
                     <figure class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
                         <figcaption class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-4 py-2 text-xs text-gray-300">

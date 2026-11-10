@@ -22,7 +22,15 @@ test('changing region reloads offices and completion saves the API values for in
     page.on('request', request => { if (request.method() === 'POST') posts.push(request.url()); });
     await page.goto('/examples/choices-from-web');
     await page.locator('#tab-code').click();
-    await expect(page.locator('#panel-code pre > code.language-json')).toHaveCount(0);
+    const definition = page.locator('#panel-code [data-definition-code]');
+    await expect(definition).not.toHaveAttribute('open');
+    await expect(definition.locator('pre')).toBeHidden();
+    await definition.locator('summary').click();
+    await expect(definition.locator('code.language-json')).toBeVisible();
+    await expect(definition.locator('code.language-json')).toContainText('/api/offices?region={region}');
+    await expect(definition.locator('code.language-json')).toContainText('/api/countries');
+    await definition.locator('summary').press('Enter');
+    await expect(definition).not.toHaveAttribute('open');
     await expect(page.locator('#panel-code')).not.toContainText('onComplete');
     await page.locator('#tab-demo').click();
     const office = page.getByRole('combobox', { name: /^Office/ });

@@ -1,5 +1,29 @@
 import { expect, test } from '@playwright/test';
 
+for (const width of [1440, 390]) {
+    test(`JSON definitions start collapsed and open independently at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 950 });
+        await page.goto('/examples/relational-storage#code');
+        const definitions = page.locator('#panel-code [data-definition-code]');
+        await expect(definitions).toHaveCount(2);
+        for (const definition of await definitions.all()) {
+            await expect(definition).not.toHaveAttribute('open');
+            await expect(definition.locator('pre')).toBeHidden();
+        }
+        await definitions.nth(0).locator('summary').click();
+        await expect(definitions.nth(0).locator('code.language-json')).toContainText('"name": "q_email"');
+        await expect(definitions.nth(0).locator('pre')).toBeVisible();
+        await expect(definitions.nth(1).locator('pre')).toBeHidden();
+        await definitions.nth(1).locator('summary').press('Enter');
+        await expect(definitions.nth(1).locator('code.language-json')).toContainText('"name": "contact_email"');
+        await expect(definitions.nth(1).locator('pre')).toBeVisible();
+        await definitions.nth(0).locator('summary').click();
+        await expect(definitions.nth(0).locator('pre')).toBeHidden();
+        await expect(definitions.nth(1).locator('pre')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    });
+}
+
 for (const version of ['v1', 'v2']) {
     test(`${version} maps renamed questions to stable keys and confirms only the returned record`, async ({ page }) => {
         let submitted;
