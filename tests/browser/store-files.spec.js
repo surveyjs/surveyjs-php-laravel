@@ -39,12 +39,17 @@ test('a failed response save can be retried without uploading the files again', 
     await expect(page.locator('[data-show="sizes"]')).toHaveText('Upload a file to compare response sizes.');
 });
 
-test('saving waits for a valid response ID and disables reset while pending', async ({ page }) => {
+test('saving waits for a valid response ID and disables reset while pending', async ({ page, context, baseURL }) => {
     const pending = Promise.withResolvers();
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    await context.addCookies([{ name: 'demo_user', value: 'none', url: baseURL }]);
     await page.route('**/api/files', route => route.fulfill({ json: ['receipt-id'] }));
     await page.route('**/api/files/receipt-id', route => route.fulfill({ contentType: 'image/png', body: image.buffer }));
     await page.route('**/api/responses', async route => { await pending.promise; return route.fulfill({ status: 201, json: {} }); });
     await page.goto('/examples/store-files');
+    await expect(page.locator('#demo-user')).toHaveCount(0);
+    expect(await page.evaluate(() => window.SURVEYJS_PAGE.user.key)).toBe('alice');
     await page.getByRole('textbox', { name: /Purpose of the expense/ }).fill('Travel');
     await uploadReceipt(page);
     await page.getByRole('button', { name: 'Submit expense report', exact: true }).click();
@@ -52,4 +57,5 @@ test('saving waits for a valid response ID and disables reset while pending', as
     pending.resolve();
     await expect(page.getByRole('button', { name: 'Try again', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Start over', exact: true })).toBeEnabled();
+    expect(pageErrors).toEqual([]);
 });

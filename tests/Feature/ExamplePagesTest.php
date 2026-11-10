@@ -198,7 +198,7 @@ class ExamplePagesTest extends TestCase
             'save-response' => ['save-response', ['start-over']],
             'load-definition-variables-data' => ['load-definition-variables-data', ['start-over']],
             'resume-progress' => ['resume-progress', ['reload', 'start-over']],
-            'store-files' => ['store-files', ['demo-user', 'start-over']],
+            'store-files' => ['store-files', ['start-over']],
             'choices-from-web' => ['choices-from-web', ['start-over']],
             'async-functions' => ['async-functions', ['start-over']],
             'relational-storage' => ['relational-storage', ['start-over']],

@@ -112,7 +112,6 @@ onRequest(({ method, url, status }) => {
 const startOver = document.getElementById("start-over");
 survey.registerPropertyChangedHandlers(["completedState"], () => {
   startOver.disabled = survey.completedState === "saving";
-  document.getElementById("demo-user").disabled = startOver.disabled;
 });
 startOver?.addEventListener("click", () => {
   uploadGeneration++;

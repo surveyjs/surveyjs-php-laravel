@@ -1,14 +1,13 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Store uploads separately and save file references with responses. This keeps response documents small and lets your backend control access when users preview private files.</p>
+    <p>Store uploaded files separately from form responses and save only file references with the answers. This keeps response documents small while allowing the form to retrieve uploaded files from the server for previews.</p>
 @endsection
 
 @section('try')
     <li>Enter the purpose of an expense and add an image or PDF to <strong>Receipts</strong>. Each file can be up to 5 MB. The comparison above the form shows how file references reduce the response size.</li>
     <li>Press <strong>Submit expense report</strong>. The confirmation shows the saved response ID. Open <strong>Data</strong> to inspect the response's file references and the separate file records.</li>
     <li>Open <strong>Requests</strong> to inspect the upload and the preview requests. File previews are retrieved through a download endpoint that checks access.</li>
-    <li>Switch <strong>Demo user</strong> to <strong>Signed out</strong> and upload a file. Uploading is allowed in this demo, but the private preview is unavailable.</li>
     <li>Press <strong>Start over</strong> to fill out another expense report.</li>
 @endsection
 
