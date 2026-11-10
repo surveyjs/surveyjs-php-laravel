@@ -14,7 +14,7 @@ class DashboardTest extends TestCase
 
     protected bool $seed = true;
 
-    public function test_date_ranges_include_the_entire_end_date_and_match_the_data_panel(): void
+    public function test_date_ranges_include_the_entire_end_date(): void
     {
         foreach (['2020-01-01T00:00:00Z', '2020-01-31T23:59:59Z', '2020-02-01T00:00:00Z'] as $index => $date) {
             DB::table('responses')->insert(['form_id' => 'feedback', 'data' => json_encode(['satisfaction' => $index + 1]), 'created_at' => $date]);
@@ -23,6 +23,17 @@ class DashboardTest extends TestCase
         $this->getJson('/api/responses?formId=feedback&'.$query)->assertOk()->assertExactJson([
             ['satisfaction' => 1], ['satisfaction' => 2],
         ]);
-        $this->getJson('/demo/stored/dashboard?'.$query)->assertOk()->assertJsonPath('in date range', 2);
+    }
+
+    public function test_dashboard_can_request_submission_dates_without_changing_the_stored_answers(): void
+    {
+        $data = '{"satisfaction":4,"createdAt":"an answer","empty":{},"score":1.0}';
+        $date = '2020-01-31T23:59:59Z';
+        DB::table('responses')->insert(['form_id' => 'dashboard-metadata', 'data' => $data, 'created_at' => $date]);
+
+        $this->getJson('/api/responses?formId=dashboard-metadata&includeCreatedAt=1')
+            ->assertOk()->assertExactJson([['data' => json_decode($data, true), 'createdAt' => $date]]);
+        $this->getJson('/api/responses?formId=dashboard-metadata')->assertOk()->assertContent('['.$data.']');
+        $this->assertDatabaseHas('responses', ['form_id' => 'dashboard-metadata', 'data' => $data]);
     }
 }

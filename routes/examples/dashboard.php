@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // #region sjs:dashboard.server
-// GET /api/responses?formId=&from=&to=&limit=&offset= — the stored answers as an array
+// GET /api/responses?formId=&includeCreatedAt=&from=&to=&limit=&offset=
 Route::get('/api/responses', function (Request $request) {
     $documents = DB::table('responses')
         ->where('form_id', $request->query('formId'))
@@ -16,9 +16,16 @@ Route::get('/api/responses', function (Request $request) {
         ->orderBy('created_at')
         ->limit(min(max((int) $request->query('limit', 500), 1), 5000))       // filter or page on the server for large volumes
         ->offset(max((int) $request->query('offset', 0), 0))
-        ->pluck('data');
+        ->get(['data', 'created_at']);
 
-    return response('['.$documents->implode(',').']')                        // documents as stored, not re-encoded
+    // Include submission dates separately when requested by Dashboard
+    if ($request->boolean('includeCreatedAt')) {
+        return response()->json($documents->map(fn ($row) => [
+            'data' => json_decode($row->data), 'createdAt' => $row->created_at,
+        ]));
+    }
+
+    return response('['.$documents->pluck('data')->implode(',').']')         // documents as stored, not re-encoded
         ->header('Content-Type', 'application/json');
 });
 // #endregion

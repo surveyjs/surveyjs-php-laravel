@@ -236,7 +236,6 @@ class ExamplePagesTest extends TestCase
             'relational-storage' => ['relational-storage', ['start-over']],
             'validate-response' => ['validate-response', ['start-over']],
             'extract-from-paper' => ['extract-from-paper', ['sample-scan', 'own-scan', 'start-over']],
-            'dashboard' => ['dashboard', ['from']],
             'creator-load-save' => ['creator-load-save', ['demo-user']],
             'variable-presets' => ['variable-presets', ['demo-user']],
         ];

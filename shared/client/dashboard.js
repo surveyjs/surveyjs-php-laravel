@@ -1,12 +1,10 @@
 // Analyze Results with Dashboard
-import { setStoredQuery, show } from "./host.js";
+import { show } from "./host.js";
 import { Model } from "survey-core";
 import { Dashboard } from "survey-analytics";
 
-const fromInput = document.getElementById("from");
-const toInput = document.getElementById("to");
-const periodInput = document.getElementById("period");
 const container = document.getElementById("dashboard");
+const notice = document.getElementById("dashboard-notice");
 const retry = document.getElementById("retry-dashboard");
 let dashboard, schemaPromise, controller;
 let revision = 0;
@@ -22,25 +20,27 @@ async function loadSchema() {
 }
 
 // #region sjs:dashboard.client
-// Load the selected date range and update one Dashboard instance
-async function loadResults(from, to, signal) {
-  const query = new URLSearchParams({ formId: "feedback", from, to });
+// Load answers with their submission dates for Dashboard's built-in date filter
+async function loadResults(signal) {
+  const query = new URLSearchParams({ formId: "feedback", includeCreatedAt: "1", limit: "5000" });
   const [definition, response] = await Promise.all([
     loadSchema(), fetch(`/api/responses?${query}`, { signal })
   ]);
   if (!response.ok) throw new Error("Responses load failed");
   const data = await response.json();
   if (!Array.isArray(data)) throw new Error("Invalid responses");
-  return { definition, data };
+  return { definition, data: data.map(row => ({ ...row.data, createdAt: row.createdAt })) };
 }
 
 function renderResults(definition, data) {
   if (!dashboard) {
     const survey = new Model(definition);
-    dashboard = new Dashboard({ questions: survey.getAllQuestions(), data });
+    dashboard = new Dashboard({
+      questions: survey.getAllQuestions(), data,
+      dateFieldName: "createdAt", datePeriod: "last30days"
+    });
     dashboard.render(container);
   } else {
-    dashboard.resetFilter();
     dashboard.updateData(data);
   }
 }
@@ -52,25 +52,18 @@ async function refresh() {
   controller = new AbortController();
   container.hidden = true;
   container.setAttribute("aria-busy", "true");
+  notice.hidden = false;
   retry.hidden = true;
-  show("dashboard-range", `${fromInput.value || "First response"} to ${toInput.value || "Latest response"} (UTC)`);
-  if (fromInput.value && toInput.value && fromInput.value > toInput.value) {
-    show("dashboard-status", "Choose an end date on or after the start date.");
-    container.setAttribute("aria-busy", "false");
-    return;
-  }
   show("dashboard-status", "Loading responses...");
   try {
-    const { definition, data } = await loadResults(fromInput.value, toInput.value, controller.signal);
+    const { definition, data } = await loadResults(controller.signal);
     if (run !== revision) return;
-    setStoredQuery({ from: fromInput.value, to: toInput.value });
-    show("dashboard-status", data.length ? `${data.length} ${data.length === 1 ? "response" : "responses"} loaded` : "No responses");
-    if (data.length) {
-      container.hidden = false;
-      renderResults(definition, data);
-    }
+    container.hidden = false;
+    renderResults(definition, data);
+    notice.hidden = true;
   } catch (error) {
     if (run !== revision || error.name === "AbortError") return;
+    container.hidden = true;
     show("dashboard-status", "Couldn't load the responses. Please try again.");
     retry.hidden = false;
   } finally {
@@ -78,18 +71,6 @@ async function refresh() {
   }
 }
 
-function selectPeriod() {
-  const today = new Date();
-  toInput.value = today.toISOString().slice(0, 10);
-  if (periodInput.value === "all") fromInput.value = "";
-  else {
-    today.setUTCDate(today.getUTCDate() - Number(periodInput.value) + 1);
-    fromInput.value = today.toISOString().slice(0, 10);
-  }
-  refresh();
-}
-periodInput.addEventListener("change", () => { if (periodInput.value !== "custom") selectPeriod(); });
-for (const input of [fromInput, toInput]) input.addEventListener("change", () => { periodInput.value = "custom"; refresh(); });
 retry.addEventListener("click", refresh);
 addEventListener("pagehide", () => { controller?.abort(); dashboard?.destroy(); }, { once: true });
-selectPeriod();
+refresh();
