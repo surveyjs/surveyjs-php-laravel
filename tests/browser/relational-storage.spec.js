@@ -1,15 +1,39 @@
 import { expect, test } from '@playwright/test';
 
 for (const width of [1440, 390]) {
-    test(`JSON definitions start collapsed and open independently at ${width}px`, async ({ page }) => {
+    test(`code sections start open and JSON definitions start collapsed at ${width}px`, async ({ page, context }) => {
+        await context.route('https://github.com/**', route => route.fulfill({ contentType: 'text/html', body: 'Source file' }));
         await page.setViewportSize({ width, height: 950 });
         await page.goto('/examples/relational-storage#code');
+        const codeSections = page.locator('#panel-code [data-code-section]');
+        await expect(codeSections).toHaveCount(3);
+        for (const section of await codeSections.all()) {
+            await expect(section).toHaveAttribute('open');
+            await expect(section.locator('pre')).toBeVisible();
+        }
+        await codeSections.nth(0).locator('summary').click();
+        await expect(codeSections.nth(0).locator('pre')).toBeHidden();
+        await expect(codeSections.nth(1).locator('pre')).toBeVisible();
+        await codeSections.nth(0).locator('summary').press('Enter');
+        await expect(codeSections.nth(0).locator('pre')).toBeVisible();
+        const opened = page.waitForEvent('popup');
+        await codeSections.nth(0).getByRole('link', { name: 'View on GitHub', exact: true }).click();
+        const popup = await opened;
+        await popup.close();
+        await expect(codeSections.nth(0)).toHaveAttribute('open');
         const definitions = page.locator('#panel-code [data-definition-code]');
         await expect(definitions).toHaveCount(2);
         for (const definition of await definitions.all()) {
             await expect(definition).not.toHaveAttribute('open');
             await expect(definition.locator('pre')).toBeHidden();
         }
+        await expect(definitions.nth(0).getByRole('link', { name: 'View on GitHub', exact: true })).toHaveAttribute('href', /\/shared\/definitions\/relational-storage\.v1\.json$/);
+        await expect(definitions.nth(1).getByRole('link', { name: 'View on GitHub', exact: true })).toHaveAttribute('href', /\/shared\/definitions\/relational-storage\.v2\.json$/);
+        const definitionOpened = page.waitForEvent('popup');
+        await definitions.nth(0).getByRole('link', { name: 'View on GitHub', exact: true }).click();
+        const definitionPopup = await definitionOpened;
+        await definitionPopup.close();
+        await expect(definitions.nth(0)).not.toHaveAttribute('open');
         await definitions.nth(0).locator('summary').click();
         await expect(definitions.nth(0).locator('code.language-json')).toContainText('"name": "q_email"');
         await expect(definitions.nth(0).locator('pre')).toBeVisible();

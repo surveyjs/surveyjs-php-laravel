@@ -190,24 +190,29 @@
                 @foreach (\App\Support\Demo::codeDefinitions($step) as $definition)
                     <details data-definition-code class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
                         <summary class="cursor-pointer px-4 py-3 text-xs text-gray-300 hover:bg-gray-800/60 focus-visible:outline-2 focus-visible:outline-sjs">
-                            <span class="font-semibold text-white">JSON definition</span> · <code class="[overflow-wrap:anywhere]">{{ $definition['path'] }}</code>
+                            <span class="inline-flex w-[calc(100%_-_1rem)] flex-wrap items-center justify-between gap-2 align-middle">
+                                <span class="[overflow-wrap:anywhere]"><span class="font-semibold text-white">JSON definition</span> · <code>{{ $definition['path'] }}</code></span>
+                                <a class="text-sjs underline" href="{{ $definition['url'] }}" target="_blank">View on GitHub</a>
+                            </span>
                         </summary>
                         <pre class="m-0 overflow-x-auto border-t border-gray-800 p-0 text-[12.5px] leading-relaxed"><code class="language-json block !bg-transparent p-4">{{ $definition['code'] }}</code></pre>
                     </details>
                 @endforeach
                 @foreach (\App\Support\Demo::codePanel($step) as $region)
-                    <figure class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
-                        <figcaption class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-4 py-2 text-xs text-gray-300">
-                            <span>
-                                <span class="font-semibold text-white">{{ ucfirst($region['role']) }}</span> · <code>{{ $region['path'] }}</code> · <code>sjs:{{ $region['id'] }}</code>
-                                @if ($region['run'])
-                                    · run <code class="text-white">{{ $region['run']['command'] }}</code> (port {{ $region['run']['port'] }})
-                                @endif
+                    <details data-code-section open class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
+                        <summary class="cursor-pointer px-4 py-2 text-xs text-gray-300 hover:bg-gray-800/60 focus-visible:outline-2 focus-visible:outline-sjs">
+                            <span class="inline-flex w-[calc(100%_-_1rem)] flex-wrap items-center justify-between gap-2 align-middle">
+                                <span class="[overflow-wrap:anywhere]">
+                                    <span class="font-semibold text-white">{{ ucfirst($region['role']) }}</span> · <code>{{ $region['path'] }}</code> · <code>sjs:{{ $region['id'] }}</code>
+                                    @if ($region['run'])
+                                        · run <code class="text-white">{{ $region['run']['command'] }}</code> (port {{ $region['run']['port'] }})
+                                    @endif
+                                </span>
+                                <a class="text-sjs underline" href="{{ $region['url'] }}" target="_blank">View on GitHub</a>
                             </span>
-                            <a class="text-sjs underline" href="{{ $region['url'] }}" target="_blank">View on GitHub</a>
-                        </figcaption>
-                        <pre class="m-0 overflow-x-auto p-0 text-[12.5px] leading-relaxed"><code class="language-{{ $region['language'] }} block !bg-transparent p-4">{{ $region['code'] }}</code></pre>
-                    </figure>
+                        </summary>
+                        <pre class="m-0 overflow-x-auto border-t border-gray-800 p-0 text-[12.5px] leading-relaxed"><code class="language-{{ $region['language'] }} block !bg-transparent p-4">{{ $region['code'] }}</code></pre>
+                    </details>
                 @endforeach
             </div>
         </div>

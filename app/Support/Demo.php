@@ -105,7 +105,11 @@ final class Demo
     {
         return collect($step['files'])
             ->filter(fn (string $path, string $key) => str_starts_with($key, 'definition'))
-            ->map(fn (string $path) => ['path' => $path, 'code' => trim((string) file_get_contents(base_path($path)))])
+            ->map(fn (string $path) => [
+                'path' => $path,
+                'code' => trim((string) file_get_contents(base_path($path))),
+                'url' => sprintf('%s/blob/%s/%s', config('surveyjs.github'), self::manifest()['branch'], $path),
+            ])
             ->values()->all();
     }
 

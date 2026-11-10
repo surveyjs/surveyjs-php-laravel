@@ -132,7 +132,7 @@ class ExamplePagesTest extends TestCase
     }
 
     #[DataProvider('steps')]
-    public function test_code_definitions_are_collapsed_and_match_the_source_files(string $slug): void
+    public function test_code_sections_have_their_default_states_and_definitions_match_the_source_files(string $slug): void
     {
         $html = $this->withoutVite()->get('/examples/'.$slug)->assertOk()->getContent();
         $document = new \DOMDocument;
@@ -147,9 +147,20 @@ class ExamplePagesTest extends TestCase
             $this->assertFalse($section->hasAttribute('open'));
             $this->assertSame(trim(file_get_contents(base_path($path))), $section->getElementsByTagName('code')->item(1)->textContent);
             $this->assertStringContainsString($path, $section->getElementsByTagName('summary')->item(0)->textContent);
-            $this->assertCount(0, $section->getElementsByTagName('a'));
+            $links = $section->getElementsByTagName('a');
+            $this->assertCount(1, $links);
+            $this->assertSame(config('surveyjs.github').'/blob/'.Demo::manifest()['branch'].'/'.$path, $links->item(0)->getAttribute('href'));
+            $this->assertSame('View on GitHub', $links->item(0)->textContent);
         }
-        $this->assertCount(0, $xpath->query('//*[@id="panel-code"]//a[contains(@href, "/shared/definitions/")]'));
+        $this->assertCount(0, $xpath->query('//*[@id="panel-code"]//a[contains(@href, "/shared/definitions/") and not(ancestor::details[@data-definition-code])]'));
+        $codeSections = $xpath->query('//*[@id="panel-code"]//details[@data-code-section]');
+        $this->assertCount(count(Demo::step($slug)['regions']), $codeSections);
+        foreach ($codeSections as $section) {
+            $this->assertTrue($section->hasAttribute('open'));
+            $this->assertCount(1, $section->getElementsByTagName('summary'));
+            $this->assertCount(1, $section->getElementsByTagName('pre'));
+            $this->assertCount(1, $section->getElementsByTagName('a'));
+        }
     }
 
     #[DataProvider('steps')]
