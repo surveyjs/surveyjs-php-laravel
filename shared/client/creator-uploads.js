@@ -1,5 +1,5 @@
 // Upload Files in Creator
-import { mountSurvey, note, show } from "./host.js";
+import { mountSurvey, note, page } from "./host.js";
 import { Model } from "survey-core";
 import { SurveyCreator, renderSurveyCreator } from "survey-creator-js";
 import { createSchemaSaver, responseError } from "./schema-saver.js";
@@ -11,19 +11,23 @@ const element = document.getElementById("creator");
 const retryLoad = document.getElementById("retry-load");
 const retrySave = document.getElementById("retry-save");
 const openSaved = document.getElementById("open-saved-form");
+const restore = document.getElementById("restore-sample");
+const errorMessage = document.getElementById("creator-error");
 let loaded = false;
 let uploads = 0;
 let busy = false;
+let saving = false;
 
 const saver = createSchemaSaver(() => creator.JSON, async json => {
   const response = await fetch(`/api/forms/${formId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: json });
   if (!response.ok) throw await responseError(response, "Couldn't save the form schema. Please try again.");
 }, ({ state, error }) => {
   if (!loaded || preview) return;
-  show("schema-status", state === "saved" ? "Form schema saved." : state === "saving" ? "Saving the form schema..."
-    : state === "error" ? `${error} Uploaded files are retained; retry saving their URLs.` : "The form schema has unsaved changes.");
+  saving = state === "saving";
+  showError(state === "error" ? `${error} Your schema changes remain in the editor. Uploaded files are retained.` : "");
   retrySave.hidden = state !== "error";
   if (state === "error") creator.notify(error, "error");
+  updateControls();
 });
 creator.saveSurveyFunc = (saveNo, callback) => saver.save().then(saved => callback(saveNo, saved));
 creator.onModified.add(() => { if (loaded) saver.changed(); });
@@ -34,7 +38,7 @@ creator.onUploadFile.add(async (_, options) => {
   const label = options.propertyName === "logo" || options.elementType === "header" ? "Logo" : "Image";
   uploads++;
   updateControls();
-  show("upload-status", `Uploading ${label.toLowerCase()}...`);
+  showError("");
   try {
     if (!options.files.length || options.files.some(file => file.size > 5242880 || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type))) throw new Error("Choose a PNG, JPEG, WebP, or GIF image up to 5 MB.");
     const body = new FormData();
@@ -43,12 +47,10 @@ creator.onUploadFile.add(async (_, options) => {
     const ids = response.ok ? await response.json() : null;
     if (!Array.isArray(ids) || ids.length !== options.files.length || ids.some(id => typeof id !== "string" || !id)) throw new Error(`Couldn't upload the ${label.toLowerCase()}. Please try again.`);
     options.callback("success", `/api/files/${encodeURIComponent(ids[0])}`);
-    show("upload-status", `${label} uploaded. Its URL is shown below; check the schema save status.`);
-    note(`${label} uploaded. The form schema now references its URL.`, "ok");
-    showAssetUrls();
+    note(`${label} uploaded.`, "ok");
   } catch (error) {
     options.callback("error");
-    show("upload-status", error.message);
+    showError(error.message);
     note(error.message, "error");
   } finally { uploads--; updateControls(); }
 });
@@ -56,17 +58,21 @@ creator.onUploadFile.add(async (_, options) => {
 
 function updateControls() {
   if (openSaved) openSaved.setAttribute("aria-disabled", String(!loaded || busy || uploads > 0));
+  if (restore) restore.disabled = !loaded || busy || saving || uploads > 0;
   retrySave.disabled = busy || uploads > 0;
 }
-function showAssetUrls() {
-  const urls = [];
-  if (creator.JSON.logo) urls.push(`Logo: ${creator.JSON.logo}`);
-  for (const question of creator.survey.getAllQuestions()) if (question.imageLink) urls.push(`${question.name}: ${question.imageLink}`);
-  show("asset-urls", urls.join("\n"));
+function setBusy(value) {
+  busy = value;
+  element.inert = value;
+  updateControls();
+}
+function showError(message) {
+  errorMessage.textContent = message;
+  errorMessage.hidden = !message;
 }
 async function loadDefinition() {
   retryLoad.hidden = true;
-  show("schema-status", "Loading the saved form...");
+  showError("");
   try {
     const response = await fetch(`/api/forms/${formId}`);
     if (!response.ok) throw await responseError(response, "Couldn't load the form schema. Please try again.");
@@ -75,29 +81,36 @@ async function loadDefinition() {
     creator.JSON = definition;
     loaded = true;
     saver.markSaved();
-    if (preview) { mountSurvey(new Model(definition), "creator"); show("schema-status", "This preview uses the saved image URLs."); }
+    if (preview) mountSurvey(new Model(definition), "creator");
     else { renderSurveyCreator(creator, element); creator.autoSaveEnabled = true; }
     element.hidden = false;
     element.inert = false;
-    showAssetUrls();
-  } catch (error) { show("schema-status", error.message); retryLoad.hidden = false; }
+  } catch (error) { showError(error.message); retryLoad.hidden = false; }
   updateControls();
 }
 retryLoad.addEventListener("click", loadDefinition);
 retrySave.addEventListener("click", () => creator.saveSurvey());
+restore?.addEventListener("click", async () => {
+  if (!loaded || busy || saving || uploads) return;
+  setBusy(true);
+  creator.autoSaveEnabled = false;
+  try {
+    creator.JSON = structuredClone(page.definition);
+    await saver.save();
+  } finally {
+    creator.autoSaveEnabled = true;
+    setBusy(false);
+  }
+});
 openSaved?.addEventListener("click", async event => {
   event.preventDefault();
   if (!loaded || busy || uploads) return;
   const tab = window.open("", "_blank");
-  if (!tab) { show("schema-status", "Allow pop-ups to open the saved form."); return; }
-  busy = true;
-  element.inert = true;
-  updateControls();
+  if (!tab) { showError("Allow pop-ups to open the saved form."); return; }
+  setBusy(true);
   creator.saveSurvey();
   if (await saver.save()) tab.location.href = new URL("?form", location.href).href;
   else tab.close();
-  element.inert = false;
-  busy = false;
-  updateControls();
+  setBusy(false);
 });
 await loadDefinition();

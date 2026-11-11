@@ -57,7 +57,7 @@ test('opening the form waits for save confirmation and renders the saved schema'
     await page.goto('/examples/creator-load-save');
     await title(page, 'Saved preview title');
     const opened = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'Open the form', exact: true }).click();
+    await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
     const popup = await opened;
     expect(popup.url()).toBe('about:blank');
     pending.resolve();
@@ -100,7 +100,7 @@ test('Bob can open the saved form before and after denied edits without a save r
     await page.goto('/examples/creator-load-save');
     const openForm = async () => {
         const opened = page.waitForEvent('popup');
-        await page.getByRole('link', { name: 'Open the form', exact: true }).click();
+        await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
         const popup = await opened;
         await expect(popup.locator('#creator .sd-title').first()).toHaveText(sample.title);
         const closed = popup.waitForEvent('close');
@@ -133,7 +133,7 @@ test('a server permission denial hides retry even when the page initially allowe
     await expect(page.getByRole('button', { name: 'Try saving again', exact: true })).toBeHidden();
     await expect(page.getByRole('button', { name: 'Restore sample', exact: true })).toBeDisabled();
     const opened = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'Open the form', exact: true }).click();
+    await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
     const popup = await opened;
     await expect(popup.locator('#creator .sd-title').first()).toHaveText(sample.title);
     expect(writes).toBe(1);
