@@ -173,11 +173,12 @@ class SurveyJsCheck extends Command
         }
 
         foreach ($manifest['steps'] as $step) {
+            $sources = collect($step['files'])->filter(fn ($path, $role) => $role === 'client' || str_starts_with($role, 'server'))->all();
             foreach ($step['regions'] as $id) {
                 $files = $found[$id] ?? [];
                 if (count($files) !== 1) {
                     $this->errors[] = "{$step['slug']}: region sjs:{$id} found ".count($files).' times, expected exactly once';
-                } elseif (! in_array($files[0], [$step['files']['client'] ?? null, $step['files']['server'] ?? null], true)) {
+                } elseif (! in_array($files[0], $sources, true)) {
                     $this->errors[] = "{$step['slug']}: region sjs:{$id} is in {$files[0]}, not in the step's client or server file";
                 }
             }

@@ -280,12 +280,16 @@
       "files": {
         "definition": "shared/definitions/creator-uploads.json",
         "client": "shared/client/creator-uploads.js",
+        "server": "routes/examples/store-files.php",
+        "server_schema": "routes/examples/creator-load-save.php",
         "page": "resources/views/examples/creator-uploads.blade.php"
       },
       "regions": [
-        "creator-uploads.client"
+        "creator-uploads.client",
+        "store-files.server",
+        "creator-load-save.server"
       ],
-      "note": "Client only: reuses POST /api/files from store-files"
+      "note": "Reuses file uploads from store-files and schema saving from creator-load-save"
     },
     {
       "slug": "ai-translation",

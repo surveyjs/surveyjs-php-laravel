@@ -117,11 +117,11 @@ final class Demo
     public static function codePanel(array $step): array
     {
         $panel = [];
-        foreach (['client', 'server'] as $role) {
-            $path = $step['files'][$role] ?? null;
-            if ($path === null || ! is_file(base_path($path))) {
+        foreach ($step['files'] as $source => $path) {
+            if (($source !== 'client' && ! str_starts_with($source, 'server')) || ! is_file(base_path($path))) {
                 continue;
             }
+            $role = $source === 'client' ? 'client' : 'server';
             foreach (self::regionsIn($path) as $id => $region) {
                 if (in_array($id, $step['regions'], true)) {
                     $panel[] = [

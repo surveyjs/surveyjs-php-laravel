@@ -15,15 +15,20 @@ use Illuminate\Support\Str;
 Route::post('/api/files', function (Request $request) {
     $validation = Validator::make($request->all(), [
         'files' => 'required|array|min:1',
-        'files.*' => 'required|file|max:5120|mimetypes:image/png,image/jpeg,image/webp,image/gif,application/pdf',
+        'files.*' => 'required|file|max:5120|mimetypes:'
+            .'image/png,image/jpeg,image/webp,image/gif,application/pdf',
     ]);
     abort_if($validation->fails(), 422, $validation->errors()->first());
     $ids = [];
-    foreach ($request->file('files') as $file) {   // Field "files[]": PHP keeps only the last of several "files"
+    // Field "files[]": PHP keeps only the last of several "files"
+    foreach ($request->file('files') as $file) {
         abort_unless($file->isValid(), 400, $file->getErrorMessage());
         $id = (string) Str::uuid();
-        $file->storeAs('', $id, 'uploads');                    // the "uploads" disk: local, S3…; named by id, never by the client
-        DB::table('files')->insert(['id' => $id, 'name' => $file->getClientOriginalName(), 'type' => $file->getMimeType()]);
+        // The "uploads" disk: local, S3…; named by id, never by the client
+        $file->storeAs('', $id, 'uploads');
+        DB::table('files')->insert([
+            'id' => $id, 'name' => $file->getClientOriginalName(), 'type' => $file->getMimeType(),
+        ]);
         $ids[] = $id;
     }
 

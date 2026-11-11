@@ -36,16 +36,19 @@ creator.onModified.add(() => { if (loaded) saver.changed(); });
 // Store each uploaded image separately and keep its URL in the form schema
 creator.onUploadFile.add(async (_, options) => {
   const label = options.propertyName === "logo" || options.elementType === "header" ? "Logo" : "Image";
-  uploads++;
-  updateControls();
+  uploads++; updateControls();
   showError("");
   try {
-    if (!options.files.length || options.files.some(file => file.size > 5242880 || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type))) throw new Error("Choose a PNG, JPEG, WebP, or GIF image up to 5 MB.");
+    if (!options.files.length || options.files.some(file =>
+      file.size > 5242880 || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)))
+      throw new Error("Choose a PNG, JPEG, WebP, or GIF image up to 5 MB.");
     const body = new FormData();
     options.files.forEach(file => body.append("files[]", file));
     const response = await fetch("/api/files", { method: "POST", body });
     const ids = response.ok ? await response.json() : null;
-    if (!Array.isArray(ids) || ids.length !== options.files.length || ids.some(id => typeof id !== "string" || !id)) throw new Error(`Couldn't upload the ${label.toLowerCase()}. Please try again.`);
+    if (!Array.isArray(ids) || ids.length !== options.files.length ||
+      ids.some(id => typeof id !== "string" || !id))
+      throw new Error(`Couldn't upload the ${label.toLowerCase()}. Please try again.`);
     options.callback("success", `/api/files/${encodeURIComponent(ids[0])}`);
     note(`${label} uploaded.`, "ok");
   } catch (error) {
