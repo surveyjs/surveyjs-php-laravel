@@ -237,7 +237,7 @@ class ExamplePagesTest extends TestCase
             'validate-response' => ['validate-response', ['start-over']],
             'extract-from-paper' => ['extract-from-paper', ['sample-scan', 'own-scan', 'start-over']],
             'creator-load-save' => ['creator-load-save', ['demo-user']],
-            'variable-presets' => ['variable-presets', ['demo-user']],
+            'variable-presets' => ['variable-presets', ['retry-load', 'retry-presets', 'creator-error']],
         ];
     }
 

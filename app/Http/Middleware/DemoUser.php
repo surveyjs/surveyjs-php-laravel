@@ -31,7 +31,6 @@ class DemoUser
         'load-definition-variables-data' => ['alice', 'bob'], // Compare premium and basic customer variables
         'resume-progress' => ['alice', 'bob'],         // Keep an independent draft for each respondent
         'creator-load-save' => ['alice', 'bob'],        // Bob's saves answer 403 (Gate edit-forms)
-        'variable-presets' => ['alice', 'bob'],         // Bob's preset edits answer 403 (Gate edit-forms)
     ];
 
     public function handle(Request $request, Closure $next): Response
