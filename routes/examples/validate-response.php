@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 // POST /api/responses — ask the SurveyJS service to validate, then store as usual
 Route::post('/api/responses', function (Request $request) {
     $body = json_decode($request->getContent(), flags: JSON_THROW_ON_ERROR);    // the raw body keeps {} as {} (see Save Responses)
+    abort_unless(is_object($body) && is_string($body->formId ?? null) && is_object($body->data ?? null), 400, 'Expected { formId, data } with an answers object');
     $definition = DB::table('forms')->where('key', $body->formId ?? null)->value('json') ?? abort(404, 'Unknown form');
     $check = SurveyJsService::post('/response', ['schema' => json_decode($definition), 'response' => $body->data ?? null], timeout: 10);
     if ($check->status() === 422 && $check->json('errors') !== null && ! array_key_exists('warnings', $check->json())) {

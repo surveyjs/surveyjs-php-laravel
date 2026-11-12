@@ -1,23 +1,22 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Explore collected responses through interactive charts and filters. Use the form schema to choose charts automatically, and load a date range of responses from your backend.</p>
+    <p>Load a form schema and collected responses from your backend to build an interactive Dashboard. Explore the results with built-in date filters, chart selection, and cross-filtering.</p>
 @endsection
 
 @section('theme', 'dashboard')
 
 @section('try')
-    <li>About 200 seeded feedback responses, spread over the last 90 days, render in Dashboard.</li>
-    <li>Change <strong>From</strong>: a new <code>GET /api/responses?formId=feedback&amp;from=…</code> appears in <strong>Requests</strong>, and <strong>Data</strong> shows, in <code>since from</code>, how many responses the server has since that date.</li>
-    <li>The JSON schema comes from <code>GET /api/forms/feedback</code>.</li>
-@endsection
-
-@section('actions')
-    <label for="from" class="text-gray-600">From</label>
-    <input id="from" type="date" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
-    <span class="text-gray-500">on or after this date (UTC)</span>
+    <li>Use Dashboard's date panel to choose a preset or enter a date range. The response count and charts update for the selected period.</li>
+    <li>Click a bar under <strong>Where did you hear about us?</strong> to filter the other charts to that group. Press <strong>Reset Filter</strong> to include everyone again.</li>
+    <li>Change a chart type or sort order to explore the same answers in a different way.</li>
+    <li>Open <strong>Requests</strong> to inspect the form schema and responses, including their submission dates. Date filtering happens in Dashboard after the responses are loaded. <strong>Data</strong> shows the total number of stored responses.</li>
 @endsection
 
 @section('form')
-    <div id="dashboard" class="min-h-96 p-2"></div>
+    <div id="dashboard-notice" class="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 text-sm">
+        <p data-show="dashboard-status" role="status" aria-live="polite" class="m-0 flex-1 font-semibold">Loading responses...</p>
+        <button id="retry-dashboard" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 font-semibold hover:bg-gray-100">Try again</button>
+    </div>
+    <div id="dashboard" hidden aria-busy="true" class="min-h-96 p-2"></div>
 @endsection

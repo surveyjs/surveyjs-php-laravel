@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\Demo;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
@@ -13,6 +14,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -77,6 +79,15 @@ class SurveyJsServiceTest extends TestCase
         $this->assertSame($before + 1, DB::table('responses')->count());
         Http::assertSent(fn ($request) => json_decode($request->body(), true)['schema']['elements'][0]['name'] === 'q_email'
             && json_decode($request->body(), true)['response'] === self::CLAIM);
+    }
+
+    public function test_invalid_response_envelopes_never_reach_the_validator_or_storage(): void
+    {
+        Http::fake();
+        foreach ([[], ['formId' => ['claim'], 'data' => new \stdClass], ['formId' => 'claim', 'data' => 'answers']] as $payload) {
+            $this->assertNothingSaved('responses', fn () => $this->postJson('/api/responses', $payload)->assertStatus(400));
+        }
+        Http::assertNothingSent();
     }
 
     public function test_iv1_answers_that_dont_fit_are_refused_with_the_errors(): void
@@ -146,6 +157,15 @@ class SurveyJsServiceTest extends TestCase
             ->assertStatus(422)->assertExactJson($answer));
     }
 
+    public function test_lint_rejection_preserves_the_previous_saved_schema(): void
+    {
+        $previous = DB::table('forms')->where('key', 'support-lint')->value('json');
+        Http::fake([self::SERVICE.'/schema' => Http::response(['errors' => [['ruleId' => 'reference/unknown', 'message' => 'Missing question']]], 422)]);
+        $this->putJson('/api/forms/support-lint', ['elements' => [['type' => 'text', 'name' => 'bad', 'visibleIf' => '{missing} = 1']]])->assertStatus(422);
+        $this->assertSame($previous, DB::table('forms')->where('key', 'support-lint')->value('json'));
+        $this->getJson('/demo/stored/lint-definition')->assertOk()->assertJsonPath('forms.key', 'support-lint');
+    }
+
     public function test_iv2_warnings_next_to_another_key_are_not_recognized(): void
     {
         Http::fake([self::SERVICE.'/schema' => Http::response(['warnings' => [], 'error' => 'odd'], 200)]);
@@ -188,6 +208,32 @@ class SurveyJsServiceTest extends TestCase
         $this->assertSame('%PDF-1.7 fake', $response->getContent());
     }
 
+    public function test_pdf_generation_uses_the_recorded_schema_version_and_saved_answers(): void
+    {
+        $claim = DB::table('responses')->where('form_id', 'claim')->where('definition_version', 'v2')->first();
+        Http::fake([self::SERVICE.'/pdf' => Http::response('%PDF-1.7 fake', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->get("/api/claims/{$claim->id}/pdf")->assertOk()->assertHeader('Content-Disposition', "inline; filename=\"claim-{$claim->id}.pdf\"");
+        Http::assertSent(fn ($request) => json_decode($request->body(), true) === [
+            'schema' => json_decode(file_get_contents(base_path('shared/definitions/relational-storage.v2.json')), true),
+            'response' => json_decode($claim->data, true),
+        ]);
+    }
+
+    public function test_a_pdf_content_type_without_pdf_bytes_is_rejected(): void
+    {
+        Http::fake([self::SERVICE.'/pdf' => Http::response('Not a PDF', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->getJson("/api/claims/{$this->claimId()}/pdf")->assertStatus(502);
+    }
+
+    public function test_an_unknown_claim_schema_version_is_not_silently_replaced(): void
+    {
+        $id = $this->claimId();
+        DB::table('responses')->where('id', $id)->update(['definition_version' => 'v99']);
+        Http::fake();
+        $this->getJson("/api/claims/{$id}/pdf")->assertStatus(409);
+        Http::assertNothingSent();
+    }
+
     public function test_iv3_a_200_with_the_wrong_content_type_is_not_a_pdf(): void
     {
         Http::fake([self::SERVICE.'/pdf' => Http::response(['error' => 'schema is required'], 200)]);
@@ -223,7 +269,7 @@ class SurveyJsServiceTest extends TestCase
 
     private function extract()
     {
-        return $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->createWithContent('scan.png', 'PNG bytes')], ['Accept' => 'application/json']);
+        return $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->createWithContent('scan.png', file_get_contents(base_path('shared/samples/work-order-scan.png')))], ['Accept' => 'application/json']);
     }
 
     public function test_iv4_returns_answers_in_the_forms_shape_and_saves_nothing(): void
@@ -233,9 +279,37 @@ class SurveyJsServiceTest extends TestCase
 
         $this->assertNothingSaved('responses', fn () => $this->extract()->assertOk()
             ->assertExactJson(['answers' => ['customer_name' => 'Ann'], 'confidence' => $confidence, 'uniqueId' => 'WO-1']));
-        Http::assertSent(fn ($request) => json_decode($request->body(), true)['document'] === base64_encode('PNG bytes')
+        Http::assertSent(fn ($request) => json_decode($request->body(), true)['document'] === base64_encode(file_get_contents(base_path('shared/samples/work-order-scan.png')))
             && json_decode($request->body(), true)['schema']['title'] === 'Work order'
             && str_contains($request->header('Content-Type')[0] ?? '', 'application/json'));
+    }
+
+    public function test_the_blank_pdf_extraction_and_review_form_use_the_same_stored_schema(): void
+    {
+        $schema = json_decode(DB::table('forms')->where('key', 'work-order')->value('json'));
+        $schema->description = 'The work order configured for this application';
+        DB::table('forms')->where('key', 'work-order')->update(['json' => json_encode($schema)]);
+        Http::fake([
+            self::SERVICE.'/pdf' => Http::response('%PDF-1.7 blank work order', 200, ['Content-Type' => 'application/pdf']),
+            self::SERVICE.'/extract' => Http::response(['data' => new \stdClass], 200),
+        ]);
+
+        $this->assertEquals($schema, Demo::pageConfig(Demo::step('extract-from-paper'))['definition']);
+        $this->assertNothingSaved('responses', fn () => $this->get('/api/work-orders/blank.pdf')->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="work-order.pdf"')
+            ->assertContent('%PDF-1.7 blank work order'));
+        $this->extract()->assertOk();
+        Http::assertSent(fn ($request) => $request->url() === self::SERVICE.'/pdf'
+            && json_decode($request->body()) == (object) ['schema' => $schema]);
+        Http::assertSent(fn ($request) => $request->url() === self::SERVICE.'/extract'
+            && json_decode($request->body())->schema == $schema);
+    }
+
+    public function test_the_blank_work_order_rejects_an_invalid_pdf_response(): void
+    {
+        Http::fake([self::SERVICE.'/pdf' => Http::response('Not a PDF', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->getJson('/api/work-orders/blank.pdf')->assertStatus(502)->assertJsonPath('error', 'SurveyJS service error');
     }
 
     public static function extractionRows(): array
@@ -273,6 +347,41 @@ class SurveyJsServiceTest extends TestCase
         $this->post('/api/work-orders/extract', ['scan' => UploadedFile::fake()->create('big.png', 5 * 1024 + 1)], ['Accept' => 'application/json'])
             ->assertStatus(413)->assertJsonStructure(['error']);
         Http::assertNothingSent();
+    }
+
+    public function test_unsupported_documents_are_rejected_without_calling_the_provider(): void
+    {
+        Http::fake();
+        $stream = tmpfile();
+        fwrite($stream, 'Not an image');
+        $file = new UploadedFile(stream_get_meta_data($stream)['uri'], 'scan.png', 'image/png', test: true);
+        try {
+            $this->post('/api/work-orders/extract', ['scan' => $file], ['Accept' => 'application/json'])->assertStatus(400);
+        } finally {
+            fclose($stream);
+        }
+        Http::assertNothingSent();
+    }
+
+    public function test_unexpected_extraction_results_do_not_put_document_answers_in_logs(): void
+    {
+        Log::shouldReceive('error')->once()->with('SurveyJS service: unexpected answer from /extract', ['status' => 200]);
+        Http::fake([self::SERVICE.'/extract' => Http::response(['data' => ['private answer'], 'confidence' => []], 200)]);
+        $this->extract()->assertStatus(502);
+    }
+
+    public function test_reviewed_work_order_answers_are_saved_only_by_the_separate_submission(): void
+    {
+        Http::fake([
+            self::SERVICE.'/extract' => Http::response(['data' => ['customer_name' => 'Draft customer'], 'confidence' => []], 200),
+            self::SERVICE.'/response' => Http::response('{}', 200, ['Content-Type' => 'application/json']),
+        ]);
+        $before = DB::table('responses')->where('form_id', 'work-order')->count();
+        $this->extract()->assertOk();
+        $this->assertSame($before, DB::table('responses')->where('form_id', 'work-order')->count());
+        $response = $this->postJson('/api/responses', ['formId' => 'work-order', 'data' => ['customer_name' => 'Reviewed customer', 'site_address' => null, 'resolved' => false]])->assertCreated();
+        $this->assertSame($before + 1, DB::table('responses')->where('form_id', 'work-order')->count());
+        $this->getJson('/demo/stored/extract-from-paper?id='.$response->json('id'))->assertOk()->assertJsonPath('responses.0.data.customer_name', 'Reviewed customer')->assertJsonPath('responses.0.data.resolved', false);
     }
 
     private function assertNothingSaved(string $table, \Closure $request): void

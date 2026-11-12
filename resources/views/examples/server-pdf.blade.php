@@ -1,5 +1,5 @@
 @php
-    $claims = \App\Support\Demo::records('claim', 'customer_email');
+    $claims = \Illuminate\Support\Facades\DB::table('responses')->where('form_id', 'claim')->orderByDesc('id')->limit(10)->get();
 @endphp
 @extends('layouts.example')
 
@@ -7,23 +7,37 @@
     <p>Generate PDFs on the server for archives, email attachments, or downloads. Use a form schema and optional saved answers to produce a document without opening a browser.</p>
 @endsection
 
-@section('banner')
-    <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-        PDF Generator is commercial, and the pinned SurveyJS service never calls <code>setLicenseKey()</code>, so its PDFs carry the SurveyJS alert banner even when you set a licence key.
-    </p>
+@section('try')
+    <li>Press <strong>Open PDF</strong> beside a claim to view the filled form in a new tab or <strong>Download PDF</strong> to save a copy.</li>
+    <li>The backend generates the PDF from the form schema and saved answers. Open <strong>Requests</strong> to inspect the PDF request.</li>
+    <li>Submit a claim in the <a href="{{ route('example', 'relational-storage') }}" target="_blank" rel="noopener">Use Relational Storage</a> demo, then reload this page to include it in the ten most recent claims.</li>
 @endsection
 
-@section('try')
-    <li>Press <strong>Download PDF</strong> next to a claim: <code>GET /api/claims/&lt;id&gt;/pdf</code> answers <code>application/pdf</code>, and the filled form opens in a new tab.</li>
-    <li>New claims from <a href="{{ route('example', 'relational-storage') }}">Use Relational Storage</a> appear in this list.</li>
+@section('actions')
+    <p id="pdf-feedback" hidden role="status" aria-live="polite" class="m-0 text-sm text-gray-600 data-[kind=error]:text-red-700"></p>
 @endsection
 
 @section('form')
     <ul class="m-0 list-none divide-y divide-gray-100 p-0">
-        @forelse ($claims as $id => $label)
-            <li class="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                <span>Claim {{ $label }}</span>
-                <button type="button" data-claim="{{ $id }}" class="cursor-pointer rounded bg-sjs px-3 py-1.5 font-semibold text-white">Download PDF</button>
+        @forelse ($claims as $claim)
+            @php($answers = json_decode($claim->data))
+            <li data-claim-row class="px-4 py-4 text-sm">
+                <div class="flex flex-wrap items-start justify-between gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_auto]">
+                    <details class="min-w-0 flex-1 basis-64 lg:col-span-2 lg:col-start-1 lg:row-start-1 lg:grid lg:grid-cols-subgrid lg:[&::details-content]:col-span-2">
+                        <summary class="cursor-pointer break-words py-2 font-semibold lg:col-start-1">Claim #{{ $claim->id }} · {{ is_scalar($answers->customer_email ?? null) ? $answers->customer_email : 'No email provided' }}</summary>
+                        <pre class="mt-3 max-h-56 overflow-auto rounded bg-gray-50 p-3 text-xs">{{ json_encode($answers, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                    </details>
+                    <div class="flex flex-wrap gap-2 lg:col-start-2 lg:row-start-1">
+                        <button type="button" data-claim="{{ $claim->id }}" data-action="open" class="box-border inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-sjs-dark bg-sjs-dark px-3 text-sm font-semibold whitespace-nowrap text-white [font-family:inherit] transition-colors enabled:hover:bg-sjs-dark/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sjs-dark disabled:cursor-wait disabled:opacity-50">
+                            Open PDF
+                            <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+                        </button>
+                        <button type="button" data-claim="{{ $claim->id }}" data-action="download" class="box-border inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold whitespace-nowrap text-gray-700 [font-family:inherit] transition-colors enabled:hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sjs-dark disabled:cursor-wait disabled:opacity-50">
+                            <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></svg>
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
             </li>
         @empty
             <li class="px-4 py-3 text-sm text-gray-500">

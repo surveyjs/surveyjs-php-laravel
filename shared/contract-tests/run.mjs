@@ -169,15 +169,15 @@ check("resume-progress: null before saving, stored as-is, the same document on G
 
 // ---------- store-files
 check("store-files upload two files, download the same bytes and Content-Type", "store-files", async () => {
-  const one = Buffer.from("first file\n");
+  const one = Buffer.from("%PDF-1.4\n% Demo receipt\n%%EOF\n");
   const two = readShared("samples/work-order-scan.png");
   const form = new FormData();
-  form.append("files[]", new Blob([one], { type: "text/plain" }), "one.txt");
+  form.append("files[]", new Blob([one], { type: "application/pdf" }), "one.pdf");
   form.append("files[]", new Blob([two], { type: "image/png" }), "two.png");
   const r = await http("POST", "/api/files", { body: form });
   expectStatus(r, 200, "POST /api/files");
   expect(Array.isArray(r.data) && r.data.length === 2 && r.data.every((id) => typeof id === "string" && id), `expected two ids, got ${r.text()}`);
-  for (const [id, bytes, type] of [[r.data[0], one, "text/plain"], [r.data[1], two, "image/png"]]) {
+  for (const [id, bytes, type] of [[r.data[0], one, "application/pdf"], [r.data[1], two, "image/png"]]) {
     const d = await http("GET", `/api/files/${encodeURIComponent(id)}`);
     expectStatus(d, 200, "GET /api/files/:id");
     expect(d.bytes.equals(bytes), "downloaded bytes equal the upload");
@@ -306,7 +306,9 @@ check("variable-presets: GET, 404, 403 for Bob, PUT stored as-is", "variable-pre
   expectStatus(seeded, 200, "GET /api/variable-presets/support");
   expect(Array.isArray(seeded.data) && seeded.data.length >= 2, "basic and premium presets are seeded");
   const key = unique("contract");
-  expectError(await http("GET", `/api/variable-presets/${key}`), 404, "GET unknown presets");
+  const empty = await http("GET", `/api/variable-presets/${key}`);
+  expectStatus(empty, 200, "GET unsaved presets");
+  expectEqual(empty.data, [], "unsaved presets are an empty list");
   const presets = [{ name: "basic", variables: { customerTier: "basic" } }, { name: "premium", description: "", variables: { customerTier: "premium", extra: {} } }];
   expectError(await http("PUT", `/api/variable-presets/${key}`, { json: presets, user: "bob" }), 403, "PUT as Bob");
   expectStatus(await http("PUT", `/api/variable-presets/${key}`, { json: presets }), 204, "PUT as Alice");

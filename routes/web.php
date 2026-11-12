@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('catalog', ['manifest' => Demo::manifest()]))->name('catalog');
 
+Route::view('/examples/server-pdf/loading', 'examples.pdf-loading');
+
 Route::get('/examples/{slug}', function (Request $request, string $slug) {
     $step = Demo::step($slug) ?? abort(404);
     DemoUser::signInForPage($slug, $request);
@@ -29,6 +31,7 @@ Route::get('/shared/{path}', function (string $path) {
         'js', 'mjs' => 'text/javascript; charset=utf-8',
         'json' => 'application/json',
         'png' => 'image/png',
+        'svg' => 'image/svg+xml',
         'jpg', 'jpeg' => 'image/jpeg',
         'pdf' => 'application/pdf',
         default => 'application/octet-stream',

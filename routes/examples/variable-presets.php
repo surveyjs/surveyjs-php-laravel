@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 // #region sjs:variable-presets.server
-// GET /api/variable-presets/{formId} — return the stored variable presets (404 if none yet)
+// GET /api/variable-presets/{formId} — return the stored preset list, or [] when none are saved
 Route::get('/api/variable-presets/{formId}', function (string $formId) {
-    $json = DB::table('variable_presets')->where('key', $formId)->value('json') ?? abort(404, 'No saved presets');
+    $json = DB::table('variable_presets')->where('key', $formId)->value('json') ?? '[]';
 
     return response($json)->header('Content-Type', 'application/json');
 });

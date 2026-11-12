@@ -132,6 +132,38 @@ class ExamplePagesTest extends TestCase
     }
 
     #[DataProvider('steps')]
+    public function test_code_sections_have_their_default_states_and_definitions_match_the_source_files(string $slug): void
+    {
+        $html = $this->withoutVite()->get('/examples/'.$slug)->assertOk()->getContent();
+        $document = new \DOMDocument;
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $sections = $xpath->query('//*[@id="panel-code"]//details[@data-definition-code]');
+        $paths = collect(Demo::step($slug)['files'])->filter(fn ($path, $key) => str_starts_with($key, 'definition'))->values();
+
+        $this->assertCount($paths->count(), $sections);
+        foreach ($paths as $index => $path) {
+            $section = $sections->item($index);
+            $this->assertFalse($section->hasAttribute('open'));
+            $this->assertSame(trim(file_get_contents(base_path($path))), $section->getElementsByTagName('code')->item(1)->textContent);
+            $this->assertStringContainsString($path, $section->getElementsByTagName('summary')->item(0)->textContent);
+            $links = $section->getElementsByTagName('a');
+            $this->assertCount(1, $links);
+            $this->assertSame(config('surveyjs.github').'/blob/'.Demo::manifest()['branch'].'/'.$path, $links->item(0)->getAttribute('href'));
+            $this->assertSame('View on GitHub', $links->item(0)->textContent);
+        }
+        $this->assertCount(0, $xpath->query('//*[@id="panel-code"]//a[contains(@href, "/shared/definitions/") and not(ancestor::details[@data-definition-code])]'));
+        $codeSections = $xpath->query('//*[@id="panel-code"]//details[@data-code-section]');
+        $this->assertCount(count(Demo::step($slug)['regions']), $codeSections);
+        foreach ($codeSections as $section) {
+            $this->assertTrue($section->hasAttribute('open'));
+            $this->assertCount(1, $section->getElementsByTagName('summary'));
+            $this->assertCount(1, $section->getElementsByTagName('pre'));
+            $this->assertCount(1, $section->getElementsByTagName('a'));
+        }
+    }
+
+    #[DataProvider('steps')]
     public function test_every_step_page_links_to_its_docs_section_once(string $slug): void
     {
         $docs = Demo::docsUrl(Demo::step($slug));
@@ -198,15 +230,14 @@ class ExamplePagesTest extends TestCase
             'save-response' => ['save-response', ['start-over']],
             'load-definition-variables-data' => ['load-definition-variables-data', ['start-over']],
             'resume-progress' => ['resume-progress', ['reload', 'start-over']],
-            'store-files' => ['store-files', ['demo-user', 'start-over']],
+            'store-files' => ['store-files', ['start-over']],
             'choices-from-web' => ['choices-from-web', ['start-over']],
             'async-functions' => ['async-functions', ['start-over']],
             'relational-storage' => ['relational-storage', ['start-over']],
             'validate-response' => ['validate-response', ['start-over']],
             'extract-from-paper' => ['extract-from-paper', ['sample-scan', 'own-scan', 'start-over']],
-            'dashboard' => ['dashboard', ['from']],
             'creator-load-save' => ['creator-load-save', ['demo-user']],
-            'variable-presets' => ['variable-presets', ['demo-user']],
+            'variable-presets' => ['variable-presets', ['retry-load', 'retry-presets', 'creator-error']],
         ];
     }
 
@@ -244,12 +275,15 @@ class ExamplePagesTest extends TestCase
         $page = fn (string $slug) => $this->withoutVite()->get("/examples/{$slug}")->assertOk()->getContent();
 
         $this->assertStringContainsString('data-show="saved"', $this->between($page('resume-progress'), 'id="actions"', 'id="component"'));
-        $this->assertStringContainsString('data-show="sizes"', $this->between($page('store-files'), 'id="readouts"', 'id="notes"'));
+        $this->assertStringContainsString('data-show="sizes"', $this->between($page('store-files'), 'id="component"', 'id="panel-code"'));
         $this->assertStringContainsString('data-show="extract-status"', $this->between($page('extract-from-paper'), 'id="actions"', 'id="component"'));
-        $this->assertStringContainsString('data-show="room"', $this->between($page('fill-together'), 'id="actions"', 'id="component"'));
         foreach (['fill-together', 'edit-together'] as $slug) {
             $actions = $this->between($page($slug), 'id="actions"', 'id="component"');
-            $this->assertStringContainsString('data-copy-invite', $actions);
+            if ($slug === 'edit-together') {
+                $this->assertStringContainsString('id="shared-form"', $actions);
+                $this->assertStringNotContainsString('data-copy-invite', $actions);
+                $this->assertStringNotContainsString('id="invite-link"', $actions);
+            }
             $this->assertMatchesRegularExpression('~<a data-invite-link target="_blank"~', $actions);
         }
         $this->assertStringNotContainsString('data-show="posted"', $page('save-response'));

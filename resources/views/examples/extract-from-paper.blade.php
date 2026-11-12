@@ -1,7 +1,7 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Extract answers from scans and PDFs into draft forms for review. The extractor uses your form schema to return structured answers and confidence information, highlighting values that need checking before submission.</p>
+    <p>Extract answers from completed work orders using a predefined form schema. Review the extracted answers alongside the source document, correct any mistakes, and save the response.</p>
 @endsection
 
 @section('banner')
@@ -14,10 +14,11 @@
 @endsection
 
 @section('try')
-    <li>Press <strong>Use the sample scan</strong> (<a href="{{ url('/shared/samples/work-order-scan.png') }}" target="_blank">work-order-scan.png</a>) or pick <strong>Your own file</strong>: one <code>POST /api/work-orders/extract</code> fills the form as a draft.</li>
-    <li>Answers read with low confidence are marked "Review this answer". The draft details show the source file, document ID (when detected), and number of answers to review.</li>
-    <li><strong>Data</strong> shows the same <code>row counts</code> before and after: extraction saves nothing.</li>
-    <li>Press <strong>Start over</strong> to empty the form before the next scan.</li>
+    <li>Press <strong>Use the sample scan</strong> to extract answers from a completed work order.</li>
+    <li>To try your own work order, press <strong>Download blank work order</strong> and complete the PDF, or print it and fill it in by hand. Choose <strong>Upload completed work order</strong> to upload the PDF or a scan or photo. PDF, PNG, JPEG, WebP, and GIF files up to 5 MB are supported.</li>
+    <li>Compare the answers with the document preview and correct any mistakes. Low-confidence answers are marked <strong>Review this answer</strong>; blank fields remain unanswered.</li>
+    <li>Select <strong>I have reviewed these answers</strong>, then press <strong>Save reviewed response</strong>. Extraction creates a draft; saving sends the reviewed answers to your backend and confirms the response ID.</li>
+    <li>If extraction is unavailable, enter the answers directly in the form. Press <strong>Start over</strong> to clear the draft or cancel extraction.</li>
 @endsection
 
 @section('form')
@@ -29,14 +30,27 @@
         </dl>
         <p class="m-0 mt-3 text-sm text-gray-600">Review the draft before submitting.</p>
     </div>
-    <div id="form" class="p-4 sm:p-6"></div>
+    <div id="review-layout" data-preview="false" class="grid min-w-0 data-[preview=true]:xl:grid-cols-2">
+        <div id="scan-preview" hidden class="min-w-0 border-b border-gray-200 p-4 xl:border-b-0 xl:border-r">
+            <p class="m-0 mb-3 text-sm font-semibold">Source document · <a id="open-document" target="_blank" rel="noopener" class="text-sjs-dark underline">Open document</a></p>
+            <img id="scan-image" alt="Uploaded work order" hidden class="h-auto w-full rounded border border-gray-200">
+            <iframe id="scan-pdf" title="Uploaded work order PDF" hidden class="h-[640px] w-full rounded border border-gray-200"></iframe>
+        </div>
+        <div id="form" class="min-w-0 p-4 sm:p-6"></div>
+    </div>
 @endsection
 
 @section('actions')
     <button id="sample-scan" type="button" class="box-border inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-sjs-dark bg-sjs-dark px-3 text-sm font-semibold text-white [font-family:inherit] hover:bg-sjs-dark/90">Use the sample scan</button>
-    <label class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sjs">
-        Your own file<input id="own-scan" type="file" accept="image/*,application/pdf" class="sr-only">
+    <button id="download-work-order" type="button" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100 disabled:cursor-wait disabled:opacity-50">Download blank work order</button>
+    <label class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sjs has-[:disabled]:cursor-wait has-[:disabled]:opacity-50">
+        Upload completed work order<input id="own-scan" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" class="sr-only">
     </label>
     @include('examples.partials.start-over')
-    <span data-show="extract-status" class="text-gray-700">No scan</span>
+    <span data-show="extract-status" hidden role="status" aria-live="polite" class="text-gray-700"></span>
+    <p id="work-order-download-error" hidden role="alert" class="m-0 basis-full text-red-700"></p>
+@endsection
+
+@section('about')
+    <p>OpenAI and Anthropic configurations send the document to that provider for extraction. Ollama processes it on the configured Ollama server.</p>
 @endsection

@@ -343,6 +343,16 @@ export function show(name, text) {
   for (const el of document.querySelectorAll(`[data-show="${name}"]`)) el.textContent = text;
 }
 
+// Return from a saved form to the editor that opened it
+document.getElementById("back-to-editor")?.addEventListener("click", event => {
+  try {
+    if (!window.opener || window.opener.closed || window.opener.location.origin !== location.origin) return;
+    window.opener.focus();
+    window.close();
+    event.preventDefault();
+  } catch { /* Follow the link if the original editor is no longer accessible */ }
+});
+
 // The demo user is a cookie (alice, bob or none), so all tabs share it. A page signs in as its
 // own user and only some pages offer a switch: each tab sets the cookie back to its user when
 // it gets focus, so its requests keep going out as that user.
@@ -386,7 +396,8 @@ for (const link of document.querySelectorAll("[data-invite-link]")) {
   else link.href = inviteLink();
 }
 document.querySelector("[data-copy-invite]")?.addEventListener("click", async (e) => {
-  await navigator.clipboard?.writeText(inviteLink());
+  const link = document.querySelector('input[data-invite-link]')?.value ?? inviteLink();
+  await navigator.clipboard?.writeText(link);
   e.currentTarget.dataset.copied = "true";
 });
 

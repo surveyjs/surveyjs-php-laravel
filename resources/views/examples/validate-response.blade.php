@@ -9,14 +9,24 @@
 @endsection
 
 @section('try')
-    <li>Fill out the claim and press <strong>Complete</strong>: <code>POST /api/responses</code> answers <code>201</code> after the service validated it. Press <strong>Start over</strong> to submit another claim.</li>
-    <li>Send tampered responses straight to the endpoint, bypassing the form, with <strong>An unknown choice</strong>, <strong>A wrong type</strong> or <strong>A missing required answer</strong>. Each answers <code>400</code> with the errors, shown at the top of <strong>Requests</strong>, and nothing is stored.</li>
+    <li>Enter a claim or press <strong>Use sample answers</strong>, then <strong>Submit claim</strong>. The backend validates the answers before saving and returns the saved response ID.</li>
+    <li>Press <strong>Unknown choice</strong>, <strong>Wrong type</strong>, or <strong>Missing required answer</strong> to send answers directly to the API and bypass browser validation. Inspect the submitted payload and the server's errors in <strong>Requests</strong>.</li>
+    <li>Open <strong>Requests</strong> to compare accepted and rejected submissions. Rejected answers are not saved; <strong>Data</strong> shows the accepted response.</li>
 @endsection
 
 @section('actions')
-    @include('examples.partials.start-over')
-    <span class="text-gray-600">Send a tampered response</span>
-    <button type="button" data-tamper="unknown-choice" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">An unknown choice</button>
-    <button type="button" data-tamper="wrong-type" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">A wrong type</button>
-    <button type="button" data-tamper="missing-required" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">A missing required answer</button>
+    <div class="flex w-full flex-col gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+            @include('examples.partials.start-over')
+            <button id="sample-answers" type="button" class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 text-sm font-semibold disabled:opacity-50">Use sample answers</button>
+        </div>
+        <div role="group" aria-labelledby="tampered-response-label" class="flex flex-col gap-2 border-t border-gray-200 pt-4">
+            <span id="tampered-response-label" class="font-semibold text-gray-600">Send a tampered response</span>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" data-tamper="unknown-choice" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Unknown choice</button>
+                <button type="button" data-tamper="wrong-type" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Wrong type</button>
+                <button type="button" data-tamper="missing-required" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Missing required answer</button>
+            </div>
+        </div>
+    </div>
 @endsection

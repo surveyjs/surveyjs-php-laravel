@@ -1,17 +1,28 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Use backend data in calculations and validation, such as checking email availability. The form requests the needed information and updates its calculations or error messages when the server responds.</p>
+    <p>Use backend data in calculations and validation. The form requests the needed information and updates its calculations or error messages when the server responds.</p>
 @endsection
 
 @section('try')
-    <li>Type <code>taken@example.com</code> as the email and leave the field: after <code>GET /api/customers/exists</code> returns, the form shows "This email is already registered".</li>
-    <li>Type any other email: the same request returns <code>{"exists": false}</code> and the error goes away.</li>
-    <li>Type a postcode (<code>10115</code>, <code>10999</code>, <code>80331</code> or <code>SW1A 1AA</code>): Shipping updates when <code>GET /api/shipping</code> returns.</li>
-    <li>Type a postcode the server has no rate for, such as <code>99999</code>: the same request returns <code>{"price": null}</code>, and the form shows "We don't deliver to this postcode."</li>
+    <li>Enter <code>taken@example.com</code> and leave the field. The backend reports that the email is already registered. Try <code>new@example.com</code> to see an available email.</li>
+    <li>Enter <code>10115</code>, <code>10999</code>, <code>80331</code>, or <code>SW1A 1AA</code> as the postcode. The shipping price appears when the backend returns a rate.</li>
+    <li>Try <code>99999</code> to see an unsupported postcode. If a lookup fails, the status above the form explains the failure and offers <strong>Retry checks</strong>.</li>
+    <li>Press <strong>Check details</strong> with an available email and supported postcode. The form completes only after its asynchronous validation passes. Open <strong>Requests</strong> to inspect the lookups.</li>
     <li>Press <strong>Start over</strong> to try other emails and postcodes in an empty form.</li>
 @endsection
 
 @section('actions')
     @include('examples.partials.start-over')
+@endsection
+
+@section('form')
+    <div class="space-y-3 border-b border-gray-200 p-4 text-sm sm:px-6" role="status" aria-live="polite">
+        <dl class="m-0 grid gap-3 sm:grid-cols-2">
+            <div><dt class="font-semibold">Email availability</dt><dd data-show="email-status" class="m-0 mt-1 text-gray-700">Enter an email address.</dd></div>
+            <div><dt class="font-semibold">Delivery estimate</dt><dd data-show="postcode-status" class="m-0 mt-1 text-gray-700">Enter a postcode.</dd></div>
+        </dl>
+        <button id="retry-checks" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 font-semibold hover:bg-gray-100 disabled:opacity-50">Retry checks</button>
+    </div>
+    <div id="form" class="p-4 sm:p-6"></div>
 @endsection

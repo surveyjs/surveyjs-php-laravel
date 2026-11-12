@@ -1,3 +1,4 @@
 /* SurveyJS Dashboard's theme, for the Analyze Results with Dashboard page */
 @import 'survey-core/survey-core.css';
 @import 'survey-analytics/survey.analytics.css';
+@import 'survey-core/themes/adapters/tailwind4.css';

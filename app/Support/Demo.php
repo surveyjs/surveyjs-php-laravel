@@ -51,6 +51,13 @@ final class Demo
             ->filter(fn (string $path, string $key) => str_starts_with($key, 'definition'))
             ->map(fn (string $path) => json_decode((string) file_get_contents(base_path($path)), flags: JSON_THROW_ON_ERROR));
 
+        if ($step['slug'] === 'extract-from-paper') {
+            $definitions['definition'] = json_decode(
+                DB::table('forms')->where('key', 'work-order')->value('json') ?? abort(404, 'Unknown work order form'),
+                flags: JSON_THROW_ON_ERROR,
+            );
+        }
+
         return [
             'slug' => $step['slug'],
             'version' => self::manifest()['surveyjsVersion'],
@@ -100,15 +107,28 @@ final class Demo
         return array_map(fn (array $found) => count($found) === 1 ? $found[0] : ['duplicate' => count($found)] + $found[0], $regions);
     }
 
+    /** The JSON definitions displayed in collapsible sections in the Code tab. */
+    public static function codeDefinitions(array $step): array
+    {
+        return collect($step['files'])
+            ->filter(fn (string $path, string $key) => str_starts_with($key, 'definition'))
+            ->map(fn (string $path) => [
+                'path' => $path,
+                'code' => trim((string) file_get_contents(base_path($path))),
+                'url' => sprintf('%s/blob/%s/%s', config('surveyjs.github'), self::manifest()['branch'], $path),
+            ])
+            ->values()->all();
+    }
+
     /** The regions a step lists in the manifest, ready for the code panel. */
     public static function codePanel(array $step): array
     {
         $panel = [];
-        foreach (['client', 'server'] as $role) {
-            $path = $step['files'][$role] ?? null;
-            if ($path === null || ! is_file(base_path($path))) {
+        foreach ($step['files'] as $source => $path) {
+            if (($source !== 'client' && ! str_starts_with($source, 'server')) || ! is_file(base_path($path))) {
                 continue;
             }
+            $role = $source === 'client' ? 'client' : 'server';
             foreach (self::regionsIn($path) as $id => $region) {
                 if (in_array($id, $step['regions'], true)) {
                     $panel[] = [
@@ -174,6 +194,7 @@ final class Demo
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(10)->get(['id', 'name', 'type']),
             ],
             'choices-from-web' => [
+                'responses' => self::responses('visit', $id, 3),
                 'offices' => DB::table('offices')->orderBy('region')->orderBy('name')->get(),
                 'countries cache' => Cache::has('countries') ? 'cached for 24 hours' : 'empty: the next request fetches restcountries.com',
             ],
@@ -188,24 +209,36 @@ final class Demo
             ],
             'dashboard' => [
                 'responses' => DB::table('responses')->where('form_id', 'feedback')->count(),
-                'since from' => DB::table('responses')->where('form_id', 'feedback')
-                    ->where('created_at', '>=', (string) $request->query('from', '1970-01-01'))->count(),
             ],
-            'creator-load-save', 'ai-translation', 'lint-definition' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
+            'creator-load-save' => ['forms' => self::documents('forms', $request->query('key', 'support'))],
+            'ai-translation' => ['forms' => self::documents('forms', 'support-translations')],
             'creator-uploads' => [
-                'logo in the JSON schema' => json_decode((string) DB::table('forms')->where('key', 'support')->value('json'))->logo ?? null,
+                'forms' => self::documents('forms', 'support-assets'),
                 'files' => DB::table('files')->orderByDesc('rowid')->limit(5)->get(['id', 'name', 'type']),
             ],
             'variable-presets' => ['variable_presets' => self::documents('variable_presets', $request->query('key', 'support'))],
             'edit-together' => [
                 'relay room' => self::relaySnapshot($request, 'edit'),
-                'forms' => self::documents('forms', 'support'),
+                'forms' => self::documents('forms', $request->query('key', 'support-team')),
             ],
             'validate-response' => ['responses' => self::responses('claim', $id)],
-            'server-pdf' => self::claims(null, 10),
-            'extract-from-paper' => ['row counts' => self::rowCounts()],
+            'lint-definition' => ['forms' => self::documents('forms', 'support-lint')],
+            'server-pdf' => ['responses' => self::responses('claim', $id, 10)],
+            'extract-from-paper' => ['row counts' => self::rowCounts(), 'responses' => self::responses('work-order', $id, 3)],
             default => null,
         };
+    }
+
+    /** Saved forms owned by the collaborative editing demo, separate from other examples. */
+    public static function collaborativeForms(): array
+    {
+        return DB::table('forms')->where(fn ($query) => $query->whereLike('key', '%-team')->orWhereLike('key', 'team-%'))
+            ->orderBy('key')->get(['key', 'json'])->mapWithKeys(function ($row) {
+                $title = json_decode($row->json)->title ?? null;
+                $label = is_string($title) ? $title : ($title->default ?? 'Untitled form');
+
+                return [$row->key => $label ?: 'Untitled form'];
+            })->all();
     }
 
     /** Stored responses to pick from on a step page: [id => "#id · label"]. */

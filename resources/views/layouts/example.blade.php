@@ -4,12 +4,10 @@
      on the left; narrower, it opens as a full-screen sheet. The explanation is in the docs; the integration code is
      in the step's files. --}}
 @php
-    $manifest = \App\Support\Demo::manifest();
     $config = \App\Support\Demo::pageConfig($step);
     $users = \App\Http\Middleware\DemoUser::forPage($step['slug']);
     $commercial = str_starts_with($step['licence'], 'Commercial');
     $theme = trim($__env->yieldContent('theme', 'survey'));
-    $blob = config('surveyjs.github').'/blob/'.$manifest['branch'];
     $hasActions = count($users) > 1 || trim($__env->yieldContent('actions')) !== '';
     $hasReadouts = trim($__env->yieldContent('readouts')) !== '';
     // The tab buttons of both columns (design 02's header tabs)
@@ -36,7 +34,15 @@
             <span class="max-lg:hidden">{{ \App\Support\Demo::TITLE }}</span>
         </a>
         <span aria-hidden="true" class="text-gray-300 max-lg:hidden">/</span>
-        <h1 class="min-w-0 truncate text-base font-semibold text-gray-900">{{ $step['title'] }}</h1>
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 class="min-w-0 max-w-full truncate text-base font-semibold text-gray-900">{{ $step['title'] }}</h1>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-lg px-2 py-1 text-xs font-semibold whitespace-nowrap {{ $commercial ? 'bg-sjs-yellow-10 text-sjs-yellow' : 'bg-sjs-10 text-sjs' }}">{{ $commercial ? 'Commercial' : 'MIT' }}</span>
+                @if (str_contains($step['licence'], 'needs an AI provider'))
+                    <span class="rounded-lg bg-sjs-violet-10 px-2 py-1 text-xs font-semibold whitespace-nowrap text-sjs-violet">AI Provider Required</span>
+                @endif
+            </div>
+        </div>
     </div>
 
     @if (request()->attributes->get('demo_join_failed'))
@@ -104,7 +110,7 @@
                 @endif
 
                 @if ($commercial)
-                    <p class="text-sm text-gray-600">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner.</p>
+                    <p class="text-sm text-gray-600">SurveyJS commercial products require a developer license for production use. See <a class="text-sjs-dark underline" href="https://surveyjs.io/licensing" target="_blank" rel="noopener">SurveyJS Licensing</a> for details.</p>
                 @endif
             </div>
 
@@ -185,29 +191,33 @@
 
         {{-- CODE: the step's regions at the column's width; it scrolls with the page --}}
         <div id="panel-code" role="tabpanel" aria-labelledby="tab-code" hidden class="p-4 text-sm lg:p-6">
-            <p class="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-                <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['server'] ?? $step['files']['client'] }}" target="_blank">Source on GitHub</a>
-                @isset($step['files']['definition'])
-                    <span>Definition: <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definition'] }}" target="_blank"><code>{{ $step['files']['definition'] }}</code></a>@isset($step['files']['definitionV2']), <a class="text-sjs-dark underline" href="{{ $blob }}/{{ $step['files']['definitionV2'] }}" target="_blank"><code>{{ $step['files']['definitionV2'] }}</code></a>@endisset</span>
-                @endisset
-                @if ($commercial)
-                    <span class="text-gray-500">{{ Str::before($step['licence'], ',') }} licence: without <code class="rounded bg-gray-100 px-1">SURVEYJS_LICENSE_KEY</code> the component shows a licence banner</span>
-                @endif
-            </p>
             <div class="grid gap-4">
-                @foreach (\App\Support\Demo::codePanel($step) as $region)
-                    <figure class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
-                        <figcaption class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 px-4 py-2 text-xs text-gray-300">
-                            <span>
-                                <span class="font-semibold text-white">{{ ucfirst($region['role']) }}</span> · <code>{{ $region['path'] }}</code> · <code>sjs:{{ $region['id'] }}</code>
-                                @if ($region['run'])
-                                    · run <code class="text-white">{{ $region['run']['command'] }}</code> (port {{ $region['run']['port'] }})
-                                @endif
+                @foreach (\App\Support\Demo::codeDefinitions($step) as $definition)
+                    <details data-definition-code class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
+                        <summary class="cursor-pointer px-4 py-3 text-xs text-gray-300 hover:bg-gray-800/60 focus-visible:outline-2 focus-visible:outline-sjs">
+                            <span class="inline-flex w-[calc(100%_-_1rem)] flex-wrap items-center justify-between gap-2 align-middle">
+                                <span class="[overflow-wrap:anywhere]"><span class="font-semibold text-white">JSON definition</span> · <code>{{ $definition['path'] }}</code></span>
+                                <a class="text-sjs underline" href="{{ $definition['url'] }}" target="_blank">View on GitHub</a>
                             </span>
-                            <a class="text-sjs underline" href="{{ $region['url'] }}" target="_blank">View on GitHub</a>
-                        </figcaption>
-                        <pre class="m-0 overflow-x-auto p-0 text-[12.5px] leading-relaxed"><code class="language-{{ $region['language'] }} block !bg-transparent p-4">{{ $region['code'] }}</code></pre>
-                    </figure>
+                        </summary>
+                        <pre class="m-0 overflow-x-auto border-t border-gray-800 p-0 text-[12.5px] leading-relaxed"><code class="language-json block !bg-transparent p-4">{{ $definition['code'] }}</code></pre>
+                    </details>
+                @endforeach
+                @foreach (\App\Support\Demo::codePanel($step) as $region)
+                    <details data-code-section open class="min-w-0 overflow-hidden rounded-lg border border-gray-800 bg-[#0d1117]">
+                        <summary class="cursor-pointer px-4 py-2 text-xs text-gray-300 hover:bg-gray-800/60 focus-visible:outline-2 focus-visible:outline-sjs">
+                            <span class="inline-flex w-[calc(100%_-_1rem)] flex-wrap items-center justify-between gap-2 align-middle">
+                                <span class="[overflow-wrap:anywhere]">
+                                    <span class="font-semibold text-white">{{ ucfirst($region['role']) }}</span> · <code>{{ $region['path'] }}</code> · <code>sjs:{{ $region['id'] }}</code>
+                                    @if ($region['run'])
+                                        · run <code class="text-white">{{ $region['run']['command'] }}</code> (port {{ $region['run']['port'] }})
+                                    @endif
+                                </span>
+                                <a class="text-sjs underline" href="{{ $region['url'] }}" target="_blank">View on GitHub</a>
+                            </span>
+                        </summary>
+                        <pre class="m-0 overflow-x-auto border-t border-gray-800 p-0 text-[12.5px] leading-relaxed"><code class="language-{{ $region['language'] }} block !bg-transparent p-4">{{ $region['code'] }}</code></pre>
+                    </details>
                 @endforeach
             </div>
         </div>

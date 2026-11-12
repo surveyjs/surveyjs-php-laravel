@@ -2,3 +2,4 @@
 @import 'survey-core/survey-core.css';
 @import 'survey-creator-core/survey-creator-core.css';
 @import 'survey-creator-core/collaboration.css';
+@import 'survey-core/themes/adapters/tailwind4.css';

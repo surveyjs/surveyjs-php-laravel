@@ -34,9 +34,9 @@ final class SurveyJsService
     }
 
     /** An answer the route doesn't recognize: log it and end the request with 502 { error }. Fail closed. */
-    public static function unexpected(string $path, Response $answer, string $message = 'SurveyJS service error'): never
+    public static function unexpected(string $path, Response $answer, string $message = 'SurveyJS service error', bool $logBody = true): never
     {
-        Log::error("SurveyJS service: unexpected answer from {$path}", ['status' => $answer->status(), 'body' => substr($answer->body(), 0, 2000)]);
+        Log::error("SurveyJS service: unexpected answer from {$path}", ['status' => $answer->status(), ...($logBody ? ['body' => substr($answer->body(), 0, 2000)] : [])]);
 
         throw new HttpResponseException(response()->json(['error' => $message], 502));
     }

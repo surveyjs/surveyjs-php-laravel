@@ -62,6 +62,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(LoadDefinitionDemoSeeder::class);
+        $this->call(CreatorDemoSeeder::class);
     }
 
     private function seed(string $file, bool $associative = false): mixed

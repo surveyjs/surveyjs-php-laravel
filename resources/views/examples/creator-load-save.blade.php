@@ -1,27 +1,47 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Load and save form schemas as authors edit in Survey Creator. Changes can be saved automatically, with editing permissions checked by the backend and save errors reported to the author.</p>
+    <p>Load form JSON schemas from your backend into Survey Creator and save changes automatically. The backend checks each user's permission to save, so users without save access can edit locally while the stored schema stays unchanged.</p>
 @endsection
 
-{{-- "Open the form" (?form) renders the saved definition with the Form Library, so it loads the form theme --}}
+{{-- "Open saved form" (?form) renders the saved definition with the Form Library, so it loads the form theme --}}
 @section('theme', request()->has('form') ? 'survey' : 'creator')
 
 @section('try')
-    <li>As <strong>Alice</strong> (editor), change the form title in the Designer. Survey Creator saves automatically (<code>autoSaveEnabled</code>): one <code>PUT /api/forms/support</code> answers <code>204</code>. Open <strong>Requests</strong> and expand it to see the JSON schema sent.</li>
-    <li>Press <strong>Open the form</strong>: a new tab renders the saved JSON schema, with your new title.</li>
-    <li>Switch the <strong>Demo user</strong> to <strong>Bob</strong> (viewer) and change anything: each save answers <code>403</code> from <code>Gate::authorize('edit-forms')</code>, and Survey Creator shows the server's message: "You don't have editor rights".</li>
-    <li>Select a question: the Property Grid's Data category has the <code>dbColumn</code> property from <a href="{{ route('example', 'relational-storage') }}">Use Relational Storage</a>.</li>
+    <li>As <strong>Alice</strong>, change the form title or a question in the Designer. The status above the editor confirms when the backend has saved your changes.</li>
+    <li>Switch <strong>Demo user</strong> to <strong>Bob</strong> and edit the form. You can make changes locally, but the backend rejects attempts to save them.</li>
+    <li>Press <strong>Open saved form</strong> to view the saved version in a new tab. Alice's pending changes are saved first; Bob opens the version already stored on the server.</li>
+    <li>Open <strong>Requests</strong> to inspect the loaded schema and save requests. As Alice, you can press <strong>Restore sample</strong> to replace the saved schema with the original example.</li>
+@endsection
+
+@section('demo-user-control')
+    <label class="flex items-center gap-2">
+        <span class="text-gray-600">Demo user</span>
+        <select id="demo-user" class="box-border h-9 rounded-md border border-gray-300 bg-white px-2 text-sm">
+            <option value="alice" @selected(auth()->user()?->email === 'alice@example.com')>Alice (can save schemas)</option>
+            <option value="bob" @selected(auth()->user()?->email === 'bob@example.com')>Bob (cannot save schemas)</option>
+        </select>
+    </label>
 @endsection
 
 @section('actions')
-    <a href="?form" target="_blank" class="box-border inline-flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 no-underline hover:bg-gray-100">
-        Open the form
+    @if (request()->has('form'))
+        <a id="back-to-editor" href="?" class="text-sjs-dark underline">Back to editor</a>
+    @else
+    <a id="open-saved-form" aria-disabled="true" href="?form" target="_blank" class="box-border inline-flex h-9 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 no-underline hover:bg-gray-100 aria-disabled:opacity-50">
+        Open saved form
         <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
     </a>
+    <button id="restore-sample" type="button" disabled class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold hover:bg-gray-100 disabled:opacity-50">Restore sample</button>
+    @endif
 @endsection
 
 @section('form')
+    <div class="flex flex-wrap items-center gap-3 border-b border-gray-200 p-4 text-sm">
+        <p data-show="schema-status" role="status" aria-live="polite" class="m-0 flex-1 text-gray-700">Loading the saved form...</p>
+        <button id="retry-load" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 font-semibold hover:bg-gray-100">Retry loading</button>
+        <button id="retry-save" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 font-semibold hover:bg-gray-100 disabled:opacity-50">Try saving again</button>
+    </div>
     {{-- ?form renders a form here: it takes the form's padding instead of Creator's height --}}
-    <div id="creator" class="{{ request()->has('form') ? 'p-4 sm:p-6' : 'h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]' }}"></div>
+    <div id="creator" hidden inert class="{{ request()->has('form') ? 'p-4 sm:p-6' : 'h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]' }}"></div>
 @endsection

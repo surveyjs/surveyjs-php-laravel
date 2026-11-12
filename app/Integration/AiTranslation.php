@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Integration;
 
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -17,14 +20,19 @@ final class AiTranslation
     /** The translated strings as the model returned them (an array if all went well), or null. */
     public static function translate(array $strings, mixed $from, mixed $to): mixed
     {
-        $reply = Http::baseUrl(config('surveyjs.ai.base_url'))->withToken(config('surveyjs.ai.api_key'))->timeout(60)
-            ->post('/chat/completions', [
-                'model' => config('surveyjs.ai.model'),
-                'messages' => [
-                    ['role' => 'system', 'content' => "Translate each string from {$from} to {$to}. Return a JSON array in the same order."],
-                    ['role' => 'user', 'content' => json_encode(array_values($strings), JSON_UNESCAPED_UNICODE)],
-                ],
-            ])->throw();
+        try {
+            $reply = Http::baseUrl(config('surveyjs.ai.base_url'))->withToken(config('surveyjs.ai.api_key'))->timeout(60)
+                ->post('/chat/completions', [
+                    'model' => config('surveyjs.ai.model'),
+                    'messages' => [
+                        ['role' => 'system', 'content' => "Translate each string from {$from} to {$to}. Return a JSON array in the same order."],
+                        ['role' => 'user', 'content' => json_encode(array_values($strings), JSON_UNESCAPED_UNICODE)],
+                    ],
+                ])->throw();
+        } catch (ConnectionException|RequestException $e) {
+            report($e);
+            throw new HttpResponseException(response()->json(['error' => 'The translation provider is unavailable. Please try again.'], 502));
+        }
 
         // Models sometimes wrap the array in prose or a code fence: take the array itself
         preg_match('/\[.*\]/s', (string) $reply->json('choices.0.message.content'), $match);

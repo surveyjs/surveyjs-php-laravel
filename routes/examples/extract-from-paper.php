@@ -4,14 +4,35 @@ declare(strict_types=1);
 
 use App\Integration\SurveyJsService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+// #region sjs:extract-from-paper.template
+// Generate a blank, fillable PDF using the same schema as extraction
+Route::get('/api/work-orders/blank.pdf', function () {
+    $definition = DB::table('forms')->where('key', 'work-order')->value('json') ?? abort(404, 'Unknown work order form');
+    $pdf = SurveyJsService::post('/pdf', ['schema' => json_decode($definition)], timeout: 60);
+    if ($pdf->status() !== 200
+        || ! str_starts_with($pdf->header('Content-Type'), 'application/pdf')
+        || ! str_starts_with($pdf->body(), '%PDF-')) {
+        SurveyJsService::unexpected('/pdf', $pdf);
+    }
+
+    return response($pdf->body(), 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="work-order.pdf"',
+        'Cache-Control' => 'private, no-store',
+    ]);
+});
+// #endregion
 
 // #region sjs:extract-from-paper.server
 // POST /api/work-orders/extract — send the uploaded scan to the SurveyJS service; return a draft response
 Route::post('/api/work-orders/extract', function (Request $request) {
     $scan = $request->file('scan') ?? abort(400, 'Upload the scan in a field named "scan"');
-    abort_if(! $scan->isValid() || $scan->getSize() > 5 * 1024 * 1024, 413, 'The scan must be a file of 5 MB or less');
+    abort_if(! $scan instanceof UploadedFile || ! $scan->isValid() || $scan->getSize() > 5 * 1024 * 1024, 413, 'The scan must be a file of 5 MB or less');
+    abort_unless(in_array($scan->getMimeType(), ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif'], true), 400, 'The file is not a PDF, PNG, JPEG, WebP or GIF document');
     $out = SurveyJsService::post('/extract', [                                  // JSON with base64, not multipart
         'schema' => json_decode(DB::table('forms')->where('key', 'work-order')->value('json')), 'document' => base64_encode($scan->get())], timeout: 120);
     $result = $out->object();
@@ -22,7 +43,7 @@ Route::post('/api/work-orders/extract', function (Request $request) {
         $out->status() === 400 && $out->json('error') === 'INVALID_DOCUMENT' => response()->json(['error' => 'The file is not a PDF, PNG, JPEG, WebP or GIF document'], 400),
         $out->status() === 503 && $out->json('error') === 'AI_NOT_CONFIGURED' => response()->json(['error' => 'The SurveyJS service has no AI provider configured'], 503),
         $out->status() === 502 && $out->json('error') === 'EXTRACTION_FAILED' => response()->json(['error' => 'Could not extract the response from the document'], 502),
-        default => SurveyJsService::unexpected('/extract', $out),
+        default => SurveyJsService::unexpected('/extract', $out, logBody: false),
     };
 });
 // #endregion
