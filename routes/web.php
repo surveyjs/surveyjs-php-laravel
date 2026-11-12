@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('catalog', ['manifest' => Demo::manifest()]))->name('catalog');
 
+Route::view('/examples/server-pdf/loading', 'examples.pdf-loading');
+
 Route::get('/examples/{slug}', function (Request $request, string $slug) {
     $step = Demo::step($slug) ?? abort(404);
     DemoUser::signInForPage($slug, $request);

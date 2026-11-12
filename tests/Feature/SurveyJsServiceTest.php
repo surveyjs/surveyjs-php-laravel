@@ -212,8 +212,10 @@ class SurveyJsServiceTest extends TestCase
         $claim = DB::table('responses')->where('form_id', 'claim')->where('definition_version', 'v2')->first();
         Http::fake([self::SERVICE.'/pdf' => Http::response('%PDF-1.7 fake', 200, ['Content-Type' => 'application/pdf'])]);
         $this->get("/api/claims/{$claim->id}/pdf")->assertOk()->assertHeader('Content-Disposition', "inline; filename=\"claim-{$claim->id}.pdf\"");
-        Http::assertSent(fn ($request) => json_decode($request->body(), true)['schema']['elements'][0]['elements'][0]['name'] === 'contact_email'
-            && json_decode($request->body(), true)['response'] === json_decode($claim->data, true));
+        Http::assertSent(fn ($request) => json_decode($request->body(), true) === [
+            'schema' => json_decode(file_get_contents(base_path('shared/definitions/relational-storage.v2.json')), true),
+            'response' => json_decode($claim->data, true),
+        ]);
     }
 
     public function test_a_pdf_content_type_without_pdf_bytes_is_rejected(): void
