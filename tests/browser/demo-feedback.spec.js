@@ -105,7 +105,7 @@ test('extraction shows a reviewable draft with separate document details and res
     await expect(page.getByText('Review this answer (55% confidence)', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Start over', exact: true }).click();
-    await expect(page.locator('[data-show="extract-status"]')).toHaveText('No scan');
+    await expect(page.locator('[data-show="extract-status"]')).toBeHidden();
     await expect(page.locator('#extract-details')).toBeHidden();
     await expect(page.locator('[data-show="extract-id"]')).toBeEmpty();
     await expect(page.getByText('Review this answer (55% confidence)', { exact: true })).toBeHidden();

@@ -8,6 +8,25 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
+// #region sjs:extract-from-paper.template
+// Generate a blank, fillable PDF using the same schema as extraction
+Route::get('/api/work-orders/blank.pdf', function () {
+    $definition = DB::table('forms')->where('key', 'work-order')->value('json') ?? abort(404, 'Unknown work order form');
+    $pdf = SurveyJsService::post('/pdf', ['schema' => json_decode($definition)], timeout: 60);
+    if ($pdf->status() !== 200
+        || ! str_starts_with($pdf->header('Content-Type'), 'application/pdf')
+        || ! str_starts_with($pdf->body(), '%PDF-')) {
+        SurveyJsService::unexpected('/pdf', $pdf);
+    }
+
+    return response($pdf->body(), 200, [
+        'Content-Type' => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="work-order.pdf"',
+        'Cache-Control' => 'private, no-store',
+    ]);
+});
+// #endregion
+
 // #region sjs:extract-from-paper.server
 // POST /api/work-orders/extract — send the uploaded scan to the SurveyJS service; return a draft response
 Route::post('/api/work-orders/extract', function (Request $request) {

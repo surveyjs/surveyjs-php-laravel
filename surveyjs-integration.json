@@ -449,6 +449,7 @@
       "need": "Completed forms arrive as paper scans, photos, or filled PDFs.",
       "licence": "MIT, needs an AI provider",
       "endpoints": [
+        "GET /api/work-orders/blank.pdf",
         "POST /api/work-orders/extract",
         "POST /api/responses"
       ],
@@ -461,6 +462,7 @@
       "regions": [
         "extract-from-paper.client",
         "extract-from-paper.save",
+        "extract-from-paper.template",
         "extract-from-paper.server"
       ]
     }

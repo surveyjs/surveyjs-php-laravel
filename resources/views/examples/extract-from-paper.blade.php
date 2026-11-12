@@ -1,7 +1,7 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Extract answers from scans and PDFs into draft forms, with confidence information highlighting values to check. Review and correct the answers against the source document, then save the reviewed response.</p>
+    <p>Extract answers from completed work orders using a predefined form schema. Review the extracted answers alongside the source document, correct any mistakes, and save the response.</p>
 @endsection
 
 @section('banner')
@@ -14,10 +14,11 @@
 @endsection
 
 @section('try')
-    <li>Press <strong>Use the sample scan</strong> or choose <strong>Your own file</strong> to extract a draft. PDF, PNG, JPEG, WebP, and GIF files up to 5 MB are supported.</li>
+    <li>Press <strong>Use the sample scan</strong> to extract answers from a completed work order.</li>
+    <li>To try your own work order, press <strong>Download blank work order</strong> and complete the PDF, or print it and fill it in by hand. Choose <strong>Upload completed work order</strong> to upload the PDF or a scan or photo. PDF, PNG, JPEG, WebP, and GIF files up to 5 MB are supported.</li>
     <li>Compare the answers with the document preview and correct any mistakes. Low-confidence answers are marked <strong>Review this answer</strong>; blank fields remain unanswered.</li>
     <li>Select <strong>I have reviewed these answers</strong>, then press <strong>Save reviewed response</strong>. Extraction creates a draft; saving sends the reviewed answers to your backend and confirms the response ID.</li>
-    <li>If extraction is unavailable, press <strong>Enter manually</strong> to fill in the answers yourself. Press <strong>Start over</strong> to clear the draft or cancel extraction.</li>
+    <li>If extraction is unavailable, enter the answers directly in the form. Press <strong>Start over</strong> to clear the draft or cancel extraction.</li>
 @endsection
 
 @section('form')
@@ -28,10 +29,6 @@
             <div><dt class="text-gray-600">Answers to review</dt><dd data-show="extract-review-count" class="m-0 mt-1 font-semibold"></dd></div>
         </dl>
         <p class="m-0 mt-3 text-sm text-gray-600">Review the draft before submitting.</p>
-    </div>
-    <div class="border-b border-gray-200 px-4 py-3 text-sm">
-        <label class="inline-flex cursor-pointer items-center gap-2"><input id="review-confirmation" type="checkbox" class="accent-sjs">I have reviewed these answers</label>
-        <p id="review-error" hidden role="alert" class="m-0 mt-2 text-red-700">Review the answers and select the confirmation before saving.</p>
     </div>
     <div id="review-layout" data-preview="false" class="grid min-w-0 data-[preview=true]:xl:grid-cols-2">
         <div id="scan-preview" hidden class="min-w-0 border-b border-gray-200 p-4 xl:border-b-0 xl:border-r">
@@ -45,12 +42,13 @@
 
 @section('actions')
     <button id="sample-scan" type="button" class="box-border inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-sjs-dark bg-sjs-dark px-3 text-sm font-semibold text-white [font-family:inherit] hover:bg-sjs-dark/90">Use the sample scan</button>
-    <label class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sjs">
-        Your own file<input id="own-scan" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" class="sr-only">
+    <button id="download-work-order" type="button" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100 disabled:cursor-wait disabled:opacity-50">Download blank work order</button>
+    <label class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 hover:bg-gray-100 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sjs has-[:disabled]:cursor-wait has-[:disabled]:opacity-50">
+        Upload completed work order<input id="own-scan" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" class="sr-only">
     </label>
-    <button id="manual-entry" type="button" class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 text-sm font-semibold disabled:opacity-50">Enter manually</button>
     @include('examples.partials.start-over')
-    <span data-show="extract-status" class="text-gray-700">No scan</span>
+    <span data-show="extract-status" hidden role="status" aria-live="polite" class="text-gray-700"></span>
+    <p id="work-order-download-error" hidden role="alert" class="m-0 basis-full text-red-700"></p>
 @endsection
 
 @section('about')

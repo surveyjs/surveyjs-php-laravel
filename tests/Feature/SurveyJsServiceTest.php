@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\Demo;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
@@ -281,6 +282,34 @@ class SurveyJsServiceTest extends TestCase
         Http::assertSent(fn ($request) => json_decode($request->body(), true)['document'] === base64_encode(file_get_contents(base_path('shared/samples/work-order-scan.png')))
             && json_decode($request->body(), true)['schema']['title'] === 'Work order'
             && str_contains($request->header('Content-Type')[0] ?? '', 'application/json'));
+    }
+
+    public function test_the_blank_pdf_extraction_and_review_form_use_the_same_stored_schema(): void
+    {
+        $schema = json_decode(DB::table('forms')->where('key', 'work-order')->value('json'));
+        $schema->description = 'The work order configured for this application';
+        DB::table('forms')->where('key', 'work-order')->update(['json' => json_encode($schema)]);
+        Http::fake([
+            self::SERVICE.'/pdf' => Http::response('%PDF-1.7 blank work order', 200, ['Content-Type' => 'application/pdf']),
+            self::SERVICE.'/extract' => Http::response(['data' => new \stdClass], 200),
+        ]);
+
+        $this->assertEquals($schema, Demo::pageConfig(Demo::step('extract-from-paper'))['definition']);
+        $this->assertNothingSaved('responses', fn () => $this->get('/api/work-orders/blank.pdf')->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="work-order.pdf"')
+            ->assertContent('%PDF-1.7 blank work order'));
+        $this->extract()->assertOk();
+        Http::assertSent(fn ($request) => $request->url() === self::SERVICE.'/pdf'
+            && json_decode($request->body()) == (object) ['schema' => $schema]);
+        Http::assertSent(fn ($request) => $request->url() === self::SERVICE.'/extract'
+            && json_decode($request->body())->schema == $schema);
+    }
+
+    public function test_the_blank_work_order_rejects_an_invalid_pdf_response(): void
+    {
+        Http::fake([self::SERVICE.'/pdf' => Http::response('Not a PDF', 200, ['Content-Type' => 'application/pdf'])]);
+        $this->getJson('/api/work-orders/blank.pdf')->assertStatus(502)->assertJsonPath('error', 'SurveyJS service error');
     }
 
     public static function extractionRows(): array

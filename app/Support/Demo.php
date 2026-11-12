@@ -51,6 +51,13 @@ final class Demo
             ->filter(fn (string $path, string $key) => str_starts_with($key, 'definition'))
             ->map(fn (string $path) => json_decode((string) file_get_contents(base_path($path)), flags: JSON_THROW_ON_ERROR));
 
+        if ($step['slug'] === 'extract-from-paper') {
+            $definitions['definition'] = json_decode(
+                DB::table('forms')->where('key', 'work-order')->value('json') ?? abort(404, 'Unknown work order form'),
+                flags: JSON_THROW_ON_ERROR,
+            );
+        }
+
         return [
             'slug' => $step['slug'],
             'version' => self::manifest()['surveyjsVersion'],
