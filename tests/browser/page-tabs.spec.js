@@ -238,7 +238,7 @@ test('5. the counter counts the unseen requests, green while they succeed and re
     await expect(counter).toBeHidden();
 
     await page.route('**/api/responses', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: '{"id":1}' }));
-    await page.getByRole('button', { name: 'A wrong type' }).click();
+    await page.getByRole('button', { name: 'Wrong type' }).click();
     await expect(counter).toHaveText('1');
     await expect(counter).toHaveAttribute('data-kind', 'ok');
     expect(await colours(counter)).toEqual(['rgb(221, 244, 239)', 'rgb(25, 179, 148)']);   // sjs-15, sjs
@@ -254,7 +254,7 @@ test('5. the counter counts the unseen requests, green while they succeed and re
 
     await page.unroute('**/api/responses');
     await page.route('**/api/responses', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{"errors":[]}' }));
-    await page.getByRole('button', { name: 'A wrong type' }).click();
+    await page.getByRole('button', { name: 'Wrong type' }).click();
     await expect(counter).toHaveText('2');
     await expect(counter).toHaveAttribute('data-kind', 'error');
     expect(await colours(counter)).toEqual(['rgb(251, 218, 226)', 'rgb(229, 10, 62)']);   // sjs-red-15, sjs-red
@@ -262,7 +262,7 @@ test('5. the counter counts the unseen requests, green while they succeed and re
     // Seen: cleared, and a request while Requests shows doesn't count
     await panelTab(page, 'requests').click();
     await expect(counter).toBeHidden();
-    await page.getByRole('button', { name: 'A wrong type' }).click();
+    await page.getByRole('button', { name: 'Wrong type' }).click();
     await expect(page.locator('#requests > li:not([hidden])')).toHaveCount(3);
     await expect(counter).toBeHidden();
 
@@ -270,7 +270,7 @@ test('5. the counter counts the unseen requests, green while they succeed and re
     await page.unroute('**/api/responses');
     await page.route('**/api/responses', (route) => route.fulfill({ status: 201, contentType: 'application/json', body: '{"id":2}' }));
     await panelTab(page, 'description').click();
-    await page.getByRole('button', { name: 'A wrong type' }).click();
+    await page.getByRole('button', { name: 'Wrong type' }).click();
     await expect(counter).toHaveText('1');
     await expect(counter).toHaveAttribute('data-kind', 'ok');
 });
@@ -363,7 +363,7 @@ for (const [width, height] of [[1440, 900], [390, 844]]) {
         await page.route('**/api/responses', (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{"errors":[{"type":"unknown-choice","path":"incident"}]}' }));
         await page.goto('/examples/validate-response');
 
-        const button = page.getByRole('button', { name: 'An unknown choice' });
+        const button = page.getByRole('button', { name: 'Unknown choice' });
         for (let i = 0; i < 50; i++) await button.click();
         await expect(page.locator('#notes > li')).toHaveCount(50);
 

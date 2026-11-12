@@ -28,7 +28,7 @@ test('tampered payloads and field errors appear in Requests and a generic bad re
         ? route.fulfill({ status: 400, json: { error: 'Invalid request envelope' } })
         : route.fulfill({ status: 400, json: { errors: [{ type: 'invalidChoiceValue', path: 'incident' }] } }));
     await page.goto('/examples/validate-response');
-    await page.getByRole('button', { name: 'An unknown choice', exact: true }).click();
+    await page.getByRole('button', { name: 'Unknown choice', exact: true }).click();
     await page.getByRole('tab', { name: /^Requests/ }).click();
     await expect(page.locator('#notes > li').first()).toHaveText('Invalid response rejected as expected. No data was saved.');
     const request = page.locator('#requests > li').filter({ hasText: '/api/responses' });
@@ -36,7 +36,7 @@ test('tampered payloads and field errors appear in Requests and a generic bad re
     await expect(request.locator('[data-field="request-body"]')).toContainText('"incident": "meteor"');
     await expect(request.locator('[data-field="response-body"]')).toContainText('invalidChoiceValue');
     generic = true;
-    await page.getByRole('button', { name: 'An unknown choice', exact: true }).click();
+    await page.getByRole('button', { name: 'Unknown choice', exact: true }).click();
     await expect(page.locator('#notes > li').first()).toHaveText('Invalid request envelope');
     await expect(page.locator('#notes > li').first()).toHaveAttribute('data-kind', 'error');
 });

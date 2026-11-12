@@ -137,14 +137,14 @@ test('tampered response messages distinguish expected rejection from unexpected 
         ? route.fulfill({ status: 400, json: { errors: [{ type: 'invalid-type', path: 'amount' }] } })
         : route.fulfill({ status: 201, json: { id: 321 } }));
     await openRequests(page, 'validate-response');
-    await page.getByRole('button', { name: 'A wrong type', exact: true }).click();
+    await page.getByRole('button', { name: 'Wrong type', exact: true }).click();
     await expect(notes(page, 'ok').first()).toHaveText('Invalid response rejected as expected. No data was saved.');
     rejectResponse = false;
-    await page.getByRole('button', { name: 'A wrong type', exact: true }).click();
+    await page.getByRole('button', { name: 'Wrong type', exact: true }).click();
     await expect(notes(page, 'error').first()).toHaveText('Invalid response was accepted and saved as #321.');
     await page.unroute('**/api/responses');
     await page.route('**/api/responses', (route) => route.abort('connectionfailed'));
-    await page.getByRole('button', { name: 'A wrong type', exact: true }).click();
+    await page.getByRole('button', { name: 'Wrong type', exact: true }).click();
     await expect(notes(page, 'error').first()).toHaveText("Couldn't validate the response. Please try again.");
 });
 
@@ -159,13 +159,16 @@ test('schema messages confirm accepted saves and give a next step for validation
         return route.abort('connectionfailed');
     });
     await openRequests(page, 'lint-definition');
-    await page.getByRole('button', { name: 'A clean save', exact: true }).click();
+    await page.getByRole('button', { name: 'Unreachable condition', exact: true }).click();
+    await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
     await expect(notes(page, 'ok').first()).toHaveText('Form schema saved successfully.');
     verdict = 'invalid';
-    await page.getByRole('button', { name: 'An unknown variable in an expression', exact: true }).click();
+    await page.getByRole('button', { name: 'Broken reference', exact: true }).click();
+    await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
     await expect(notes(page, 'error').first()).toHaveText('Form schema not saved. Fix the reported errors and retry.');
     verdict = 'network';
-    await page.getByRole('button', { name: 'A clean save', exact: true }).click();
+    await page.getByRole('button', { name: 'Unreachable condition', exact: true }).click();
+    await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
     await expect(notes(page, 'error')).toHaveCount(2);
     await expect(notes(page, 'ok')).toHaveCount(1);
     expect(pageErrors).toEqual([]);

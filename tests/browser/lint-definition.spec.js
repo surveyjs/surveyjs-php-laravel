@@ -1,36 +1,68 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { lintSurvey } from 'survey-core/linter';
+import { row } from './helpers.js';
 
 const sample = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
 
-test('reports blocked errors, accepted warnings, and the raw submitted schema', async ({ page }) => {
+test('samples load into Creator without saving, and Save reports errors or accepts warnings', async ({ page }) => {
     let saved = sample;
+    const writes = [];
     await page.route('**/api/forms/support-lint', route => {
         if (route.request().method() === 'GET') return route.fulfill({ json: { definition: saved } });
         const definition = route.request().postDataJSON();
-        const elements = definition.elements ?? definition.pages?.[0]?.elements ?? [];
-        if (elements[0]?.visibleIf) return route.fulfill({ status: 422, json: { errors: [{ ruleId: 'reference/unknown', path: 'elements[0].visibleIf', message: 'Unknown question: nosuch' }], warnings: [] } });
+        writes.push(definition);
+        const findings = lintSurvey(definition).findings;
+        const errors = findings.filter(finding => finding.severity === 'error');
+        const warnings = findings.filter(finding => finding.severity === 'warning');
+        if (errors.length) return route.fulfill({ status: 422, json: { errors, warnings } });
         saved = definition;
-        return elements[0]?.someproperty
-            ? route.fulfill({ json: { warnings: [{ ruleId: 'property/unknown', path: 'elements[0].someproperty', message: 'Unknown property: someproperty' }] } })
-            : route.fulfill({ status: 204 });
+        return warnings.length ? route.fulfill({ json: { warnings } }) : route.fulfill({ status: 204 });
     });
     await page.goto('/examples/lint-definition');
-    await page.getByRole('button', { name: 'An unknown variable in an expression', exact: true }).click();
-    await expect(page.locator('[data-show="lint-status"]')).toContainText('Schema not saved');
-    await expect(page.locator('#lint-findings')).toContainText('Error');
-    await expect(page.locator('#lint-findings')).toContainText('elements[0].visibleIf');
-    expect(saved).toEqual(sample);
-    await page.locator('summary').filter({ hasText: /^Submitted schema$/ }).click();
-    await expect(page.locator('[data-show="lint-payload"]')).toContainText('{nosuch} = 1');
-    await page.getByRole('button', { name: 'An unknown property', exact: true }).click();
-    await expect(page.locator('[data-show="lint-status"]')).toContainText('Schema saved with 1 warning');
-    await expect(page.locator('#lint-findings')).toContainText('property/unknown');
-    expect(saved.elements[0].someproperty).toBe(1);
-    await page.getByRole('button', { name: 'A clean save', exact: true }).click();
-    await expect(page.locator('[data-show="lint-status"]')).toContainText('Schema saved.');
-    await expect(page.locator('#lint-report')).toBeHidden();
-    expect((saved.elements ?? saved.pages[0].elements)[0]).not.toHaveProperty('someproperty');
+    await expect(page.locator('[data-show="lint-status"]')).toHaveCount(0);
+    const cases = [
+        ['Broken reference', 'reference/unknown', 'error', "{prodcut} = 'Survey Creator'"],
+        ['Invalid expression', 'expression/syntax', 'error', '{product} = '],
+        ['Unreachable condition', 'expression/contradiction', 'warning', "{urgency} = 'Low' and {urgency} = 'Blocking'"],
+    ];
+    for (const [caption, rule, severity, expression] of cases) {
+        const before = writes.length;
+        await page.getByRole('button', { name: caption, exact: true }).click();
+        await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText(`${sample.title}: ${caption.toLowerCase()}`);
+        await expect(page.getByRole('button', { name: 'Save Survey', exact: true })).toBeEnabled();
+        await expect(page.locator('#lint-report')).toHaveAttribute('hidden', '');
+        expect(writes).toHaveLength(before);
+        await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
+        await page.getByRole('tab', { name: /^Requests/ }).click();
+        await expect(page.locator('#lint-findings')).toContainText(rule);
+        await expect(page.locator('#lint-findings')).toContainText(severity === 'error' ? 'Error' : 'Warning');
+        expect(writes).toHaveLength(before + 1);
+        expect(writes.at(-1).pages[0].elements.find(question => question.name === 'issue').visibleIf).toBe(expression);
+        if (severity === 'error') {
+            await expect(page.locator('#notes > li').first()).toHaveText('Form schema not saved. Fix the reported errors and retry.');
+            expect(saved).toEqual(sample);
+            await expect(page.getByRole('button', { name: 'Save Survey', exact: true })).toBeEnabled();
+        } else {
+            await expect(page.locator('#notes > li').first()).toContainText('Schema saved with 1 warning');
+            expect(saved).toEqual(writes.at(-1));
+            await expect(page.getByRole('button', { name: 'Save Survey', exact: true })).toBeDisabled();
+        }
+        const submitted = row(page, 'PUT', '/api/forms/support-lint');
+        await submitted.locator('[data-row-toggle]').click();
+        await expect(submitted.locator('[data-field="request-body"]')).toContainText(expression);
+        await page.locator('#creator').getByText('JSON Editor', { exact: true }).click();
+        await expect(page.locator('#creator')).toContainText('Line:');
+    }
+
+    // An edit after loading a sample is included in the schema sent by Creator's Save button.
+    await page.locator('#creator').getByText('Designer', { exact: true }).click();
+    const title = page.getByRole('textbox', { name: 'Survey Title', exact: true });
+    await title.fill('Current editor schema');
+    await title.blur();
+    await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Save Survey', exact: true })).toBeDisabled();
+    expect(saved.title).toBe('Current editor schema');
 });
 
 test('load failures are retryable and samples still work with an empty editor', async ({ page }) => {
@@ -44,11 +76,15 @@ test('load failures are retryable and samples still work with an empty editor', 
     });
     await page.goto('/examples/lint-definition');
     await expect(page.locator('#creator')).toBeHidden();
+    await expect(page.locator('#creator-error')).toHaveText('Load unavailable');
     failLoad = false;
     await page.getByRole('button', { name: 'Retry loading', exact: true }).click();
-    await page.getByRole('button', { name: 'An unknown variable in an expression', exact: true }).click();
+    await expect(page.locator('#creator-error')).toBeHidden();
+    await page.getByRole('button', { name: 'Broken reference', exact: true }).click();
+    await page.getByRole('button', { name: 'Save Survey', exact: true }).click();
+    await page.getByRole('tab', { name: /^Requests/ }).click();
     await expect(page.locator('#lint-findings')).toContainText('Unknown question reference');
-    expect(sent.elements[0].visibleIf).toBe('{nosuch} = 1');
+    expect(sent.pages[0].elements.find(question => question.name === 'issue').visibleIf).toBe("{prodcut} = 'Survey Creator'");
 });
 
 test('a pending check blocks duplicate actions and network failure keeps edits retryable', async ({ page }) => {
@@ -61,14 +97,18 @@ test('a pending check blocks duplicate actions and network failure keeps edits r
         return fail ? route.abort('connectionfailed') : route.fulfill({ status: 204 });
     });
     await page.goto('/examples/lint-definition');
-    const clean = page.getByRole('button', { name: 'A clean save', exact: true });
-    await clean.click();
-    await expect(clean).toBeDisabled();
+    const title = page.getByRole('textbox', { name: 'Survey Title', exact: true });
+    await title.fill('Keep this edit');
+    await title.blur();
+    const save = page.getByRole('button', { name: 'Save Survey', exact: true });
+    await save.click();
+    await expect(page.getByRole('button', { name: 'Unreachable condition', exact: true })).toBeDisabled();
     await expect(page.locator('#creator')).toHaveAttribute('inert', '');
     pending.resolve();
-    await expect(page.locator('[data-show="lint-status"]')).toContainText("Couldn't save the form schema");
+    await page.getByRole('tab', { name: /^Requests/ }).click();
+    await expect(page.locator('#notes > li').first()).toContainText("Couldn't save the form schema");
     fail = false;
-    await clean.click();
-    await expect(page.locator('[data-show="lint-status"]')).toContainText('Schema saved.');
+    await save.click();
+    await expect(page.locator('#notes > li').first()).toHaveText('Form schema saved successfully.');
     expect(writes).toBe(2);
 });

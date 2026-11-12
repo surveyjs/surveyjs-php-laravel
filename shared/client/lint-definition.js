@@ -1,5 +1,5 @@
 // Lint JSON Schemas
-import { note, page, show } from "./host.js";
+import { note, page } from "./host.js";
 import { SurveyCreator, renderSurveyCreator } from "survey-creator-js";
 import { responseError } from "./schema-saver.js";
 
@@ -7,6 +7,7 @@ const formId = "support-lint";
 const creator = new SurveyCreator({ showTranslationTab: true });
 const editor = document.getElementById("creator");
 const retry = document.getElementById("retry-load");
+const loadError = document.getElementById("creator-error");
 const buttons = [...document.querySelectorAll("[data-lint]")];
 let saving = false;
 
@@ -26,25 +27,24 @@ function reportFindings(report) {
     return row;
   }));
   document.getElementById("lint-report").hidden = !findings.length;
+  document.getElementById("readouts").hidden = !findings.length && !document.getElementById("notes").children.length;
 }
 
 // #region sjs:lint-definition.client
 // Display the server's errors and warnings and return the actual save result to Creator
 async function saveDefinition(definition) {
-  show("lint-payload", JSON.stringify(definition, null, 2));
   const response = await fetch(`/api/forms/${formId}`, {
     method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(definition)
   });
   const report = response.status === 204 ? {} : await response.json();
   reportFindings(report);
   if (response.status === 422 && Array.isArray(report.errors) && report.errors.length) {
-    show("lint-status", `Schema not saved. Fix ${report.errors.length} reported error${report.errors.length === 1 ? "" : "s"} and try again.`);
+    note("Form schema not saved. Fix the reported errors and retry.", "error");
     return false;
   }
   if (!response.ok) throw new Error(report.error || "Couldn't save the form schema. Please try again.");
   const count = report.warnings?.length ?? 0;
-  show("lint-status", count ? `Schema saved with ${count} warning${count === 1 ? "" : "s"}. Review the findings below.`
-    : page.switches.lintDefinitions ? "Schema saved. No findings." : "Schema saved. Server schema checking is disabled.");
+  note(count ? `Schema saved with ${count} warning${count === 1 ? "" : "s"}. Review the findings above.` : "Form schema saved successfully.", "ok");
   return true;
 }
 creator.saveSurveyFunc = async (saveNo, callback) => callback(saveNo, await checkAndSave(creator.JSON));
@@ -56,10 +56,10 @@ async function checkAndSave(definition) {
   editor.inert = true;
   for (const button of buttons) button.disabled = true;
   reportFindings({});
-  show("lint-status", "Checking and saving the schema...");
   try { return await saveDefinition(definition); }
   catch (error) {
-    show("lint-status", error instanceof TypeError || error instanceof SyntaxError ? "Couldn't save the form schema. Please try again." : error.message);
+    const message = error instanceof TypeError || error instanceof SyntaxError ? "Couldn't save the form schema. Please try again." : error.message;
+    note(message, "error");
     return false;
   } finally {
     saving = false;
@@ -68,27 +68,32 @@ async function checkAndSave(definition) {
   }
 }
 
-// Build deliberately invalid samples from a fixed definition so each check is repeatable
-function sample(change) {
-  const definition = structuredClone(page.definition);
-  change(definition.elements);
-  return definition;
-}
+// These defects survive Creator's JSON loading; only its Save button submits the schema
 const cases = {
-  "unknown-variable": () => sample(elements => { elements[0].visibleIf = "{nosuch} = 1"; }),
-  "no-name": () => sample(elements => elements.push({ type: "text", title: "A question without a name" })),
-  "unknown-property": () => sample(elements => { elements[0].someproperty = 1; }),
-  "clean": () => creator.JSON,
+  "broken-reference": "{prodcut} = 'Survey Creator'",
+  "invalid-expression": "{product} = ",
+  "unreachable-condition": "{urgency} = 'Low' and {urgency} = 'Blocking'",
 };
-for (const button of buttons) button.addEventListener("click", async () => {
-  const saved = await checkAndSave(cases[button.dataset.lint]());
-  note(saved ? "Form schema saved successfully." : "Form schema not saved. Fix the reported errors and retry.", saved ? "ok" : "error");
+for (const button of buttons) button.addEventListener("click", () => {
+  const definition = structuredClone(page.definition);
+  definition.title = `${page.definition.title}: ${button.textContent.trim().toLowerCase()}`;
+  definition.elements.find(question => question.name === "issue").visibleIf = cases[button.dataset.lint];
+  // A sample import can open Designer with its intended errors; ordinary tab changes still validate
+  const openSample = (_, options) => { if (options.tabName === "designer") options.allow = true; };
+  creator.onActiveTabChanging.add(openSample);
+  try { creator.switchTab("designer"); }
+  finally { creator.onActiveTabChanging.remove(openSample); }
+  creator.JSON = definition;
+  creator.setModified({ type: "LOAD_SAMPLE" });
+  reportFindings({});
 });
 
 async function load() {
   retry.hidden = true;
+  loadError.hidden = true;
+  loadError.textContent = "";
   for (const button of buttons) button.disabled = true;
-  show("lint-status", "Loading the saved schema...");
+  reportFindings({});
   try {
     const response = await fetch(`/api/forms/${formId}`);
     if (!response.ok) throw await responseError(response, "Couldn't load the form schema. Please try again.");
@@ -99,9 +104,10 @@ async function load() {
     editor.hidden = false;
     editor.inert = false;
     for (const button of buttons) button.disabled = false;
-    show("lint-status", "No schema checked");
   } catch (error) {
-    show("lint-status", error instanceof TypeError ? "Couldn't load the form schema. Please try again." : error.message);
+    const message = error instanceof TypeError ? "Couldn't load the form schema. Please try again." : error.message;
+    loadError.textContent = message;
+    loadError.hidden = false;
     retry.hidden = false;
   }
 }

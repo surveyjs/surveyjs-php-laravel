@@ -1,7 +1,7 @@
 @extends('layouts.example')
 
 @section('description')
-    <p>Catch broken references and logic errors in form schemas before saving. Findings are returned to Survey Creator so authors can fix issues, such as conditions referencing missing questions, before respondents encounter them.</p>
+    <p>Load a sample schema into Survey Creator, inspect or edit it, then save it to check for broken references and logic errors on the backend. Errors block saving; warnings allow the save and remain available for review.</p>
 @endsection
 
 @section('theme', 'creator')
@@ -11,25 +11,29 @@
 @endsection
 
 @section('try')
-    <li>Send a sample with <strong>An unknown variable in an expression</strong> or <strong>A question without a name</strong>. Errors block the save; the report shows what to fix and where.</li>
-    <li>Send a sample with <strong>An unknown property</strong>. Warnings allow the save and remain visible for review.</li>
-    <li>Edit the form and press <strong>Save</strong> or <strong>A clean save</strong> to check the current editor schema. Open <strong>Submitted schema</strong> or <strong>Requests</strong> to inspect exactly what was sent.</li>
-    <li>The first three buttons send fixed sample schemas. An accepted sample replaces this demo's saved schema; <strong>A clean save</strong> saves the current editor contents.</li>
+    <li>Load <strong>Broken reference</strong> or <strong>Invalid expression</strong>. The survey title and the visibility condition on <strong>Describe the issue</strong> change. Loading a sample does not save it.</li>
+    <li>In the <strong>Designer</strong> tab, press the <strong>Save</strong> button, then open <strong>Requests</strong> to inspect the submitted schema and the backend's findings. Errors block the save.</li>
+    <li>Open the <strong>JSON Editor</strong> tab to inspect the JSON schema and fix the condition. Survey Creator's built-in linter highlights the defect. Once it is fixed, return to <strong>Designer</strong> and save again.</li>
+    <li>Load <strong>Unreachable condition</strong>, then press <strong>Save</strong>. The backend saves the schema and returns a warning.</li>
 @endsection
 
 @section('actions')
-    <span class="text-gray-600">Check and save</span>
-    <button type="button" data-lint="unknown-variable" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">An unknown variable in an expression</button>
-    <button type="button" data-lint="no-name" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">A question without a name</button>
-    <button type="button" data-lint="unknown-property" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">An unknown property</button>
-    <button type="button" data-lint="clean" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">A clean save</button>
+    <button id="retry-load" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold hover:bg-gray-100">Retry loading</button>
+    <p id="creator-error" hidden role="alert" class="m-0 basis-full text-sm text-red-700"></p>
+    <div role="group" aria-labelledby="sample-schema-label" class="flex w-full flex-col gap-2">
+        <span id="sample-schema-label" class="font-semibold text-gray-600">Load a sample schema</span>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" data-lint="broken-reference" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Broken reference</button>
+            <button type="button" data-lint="invalid-expression" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Invalid expression</button>
+            <button type="button" data-lint="unreachable-condition" class="box-border inline-flex h-9 cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 text-sm font-semibold text-gray-700 [font-family:inherit] hover:bg-gray-100">Unreachable condition</button>
+        </div>
+    </div>
+@endsection
+
+@section('readouts')
+    <div id="lint-report" hidden class="overflow-x-auto"><table class="w-full border-collapse text-left text-xs"><thead><tr><th class="px-3 py-2">Severity</th><th class="px-3 py-2">Rule</th><th class="px-3 py-2">Location</th><th class="px-3 py-2">Message</th></tr></thead><tbody id="lint-findings"></tbody></table></div>
 @endsection
 
 @section('form')
-    <div class="border-b border-gray-200 p-4 text-sm">
-        <div class="flex flex-wrap items-center gap-3"><p data-show="lint-status" role="status" aria-live="polite" class="m-0 flex-1">Loading the saved schema...</p><button id="retry-load" type="button" hidden class="h-9 cursor-pointer rounded-md border border-gray-300 px-3 font-semibold">Retry loading</button></div>
-        <div id="lint-report" hidden class="mt-3 overflow-x-auto"><table class="w-full border-collapse text-left text-xs"><thead><tr><th class="px-3 py-2">Severity</th><th class="px-3 py-2">Rule</th><th class="px-3 py-2">Location</th><th class="px-3 py-2">Message</th></tr></thead><tbody id="lint-findings"></tbody></table></div>
-        <details class="mt-2"><summary class="cursor-pointer text-gray-600">Submitted schema</summary><pre data-show="lint-payload" class="max-h-56 overflow-auto rounded bg-gray-50 p-3 text-xs"></pre></details>
-    </div>
     <div id="creator" hidden inert class="h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]"></div>
 @endsection
