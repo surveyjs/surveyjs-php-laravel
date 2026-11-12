@@ -280,7 +280,9 @@ class ExamplePagesTest extends TestCase
         foreach (['fill-together', 'edit-together'] as $slug) {
             $actions = $this->between($page($slug), 'id="actions"', 'id="component"');
             if ($slug === 'edit-together') {
-                $this->assertStringContainsString('data-copy-invite', $actions);
+                $this->assertStringContainsString('id="shared-form"', $actions);
+                $this->assertStringNotContainsString('data-copy-invite', $actions);
+                $this->assertStringNotContainsString('id="invite-link"', $actions);
             }
             $this->assertMatchesRegularExpression('~<a data-invite-link target="_blank"~', $actions);
         }

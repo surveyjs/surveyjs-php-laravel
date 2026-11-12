@@ -1,5 +1,5 @@
 // Validate Responses
-import { mountSurvey, note, page, setStoredQuery, show } from "./host.js";
+import { mountSurvey, note, page, setStoredQuery } from "./host.js";
 import { Model } from "survey-core";
 
 const survey = mountSurvey(new Model(page.definition));
@@ -19,37 +19,25 @@ function describe(error) {
   const detail = error.text || error.message || error.locTextValue?.values?.default || error.type || "Invalid answer";
   return `${question ? `${question.title}: ` : path ? `${path}: ` : ""}${detail}`;
 }
-function verdict(message, errors = []) {
-  show("validation-status", message);
-  document.getElementById("validation-errors").replaceChildren(...errors.map(error => {
-    const item = document.createElement("li");
-    item.textContent = describe(error);
-    return item;
-  }));
-}
 function lock(locked) {
   for (const button of buttons) button.disabled = locked;
   startOver.disabled = locked;
 }
 
 // #region sjs:validate-response.request
-// Keep the submitted payload and the server's validation errors available for inspection
+// Inspect the submitted payload and the server's validation errors in Requests
 async function submit(data) {
   const payload = { formId: "claim", data };
-  show("validation-payload", JSON.stringify(payload, null, 2));
-  verdict("Checking the response...");
   const response = await fetch("/api/responses", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
   });
   const report = await response.json();
   if (response.status === 400 && Array.isArray(report.errors) && report.errors.length) {
-    verdict("Response rejected. No data was saved.", report.errors);
     return { rejected: true, errors: report.errors };
   }
   if (!response.ok) throw new Error(report.error || "Couldn't validate the response. Please try again.");
   if (!Number.isInteger(report.id) || report.id < 1) throw new Error("The server didn't confirm a saved response. Please try again.");
   setStoredQuery({ id: report.id });
-  verdict(page.switches.validateResponses ? `Response #${report.id} validated and saved.` : `Response #${report.id} saved. Server validation is disabled.`);
   return { id: report.id };
 }
 // #endregion
@@ -69,7 +57,6 @@ survey.onComplete.add(async (sender, options) => {
     sender.completedHtml = "<h3>Your claim hasn't been saved.</h3>";
     const message = error instanceof TypeError ? "Couldn't validate the response. Please try again." : error.message;
     options.showSaveError(message);
-    if (!document.getElementById("validation-errors").children.length) verdict(message);
   } finally { lock(false); }
 });
 // #endregion
@@ -81,8 +68,6 @@ document.getElementById("sample-answers").addEventListener("click", () => {
 startOver.addEventListener("click", () => {
   survey.notifier.active = false;
   survey.clear(true, true);
-  verdict("No response checked");
-  show("validation-payload", "");
   setStoredQuery({});
 });
 for (const button of document.querySelectorAll("[data-tamper]")) {
@@ -94,7 +79,6 @@ for (const button of document.querySelectorAll("[data-tamper]")) {
         : `Invalid response was accepted and saved as #${result.id}.`, result.rejected ? "ok" : "error");
     } catch (error) {
       const message = error instanceof TypeError ? "Couldn't validate the response. Please try again." : error.message;
-      verdict(message);
       note(message, "error");
     } finally { lock(false); }
   });

@@ -212,7 +212,7 @@ final class Demo
             'variable-presets' => ['variable_presets' => self::documents('variable_presets', $request->query('key', 'support'))],
             'edit-together' => [
                 'relay room' => self::relaySnapshot($request, 'edit'),
-                'forms' => self::documents('forms', 'support-team'),
+                'forms' => self::documents('forms', $request->query('key', 'support-team')),
             ],
             'validate-response' => ['responses' => self::responses('claim', $id)],
             'lint-definition' => ['forms' => self::documents('forms', 'support-lint')],
@@ -220,6 +220,18 @@ final class Demo
             'extract-from-paper' => ['row counts' => self::rowCounts(), 'responses' => self::responses('work-order', $id, 3)],
             default => null,
         };
+    }
+
+    /** Saved forms owned by the collaborative editing demo, separate from other examples. */
+    public static function collaborativeForms(): array
+    {
+        return DB::table('forms')->where(fn ($query) => $query->whereLike('key', '%-team')->orWhereLike('key', 'team-%'))
+            ->orderBy('key')->get(['key', 'json'])->mapWithKeys(function ($row) {
+                $title = json_decode($row->json)->title ?? null;
+                $label = is_string($title) ? $title : ($title->default ?? 'Untitled form');
+
+                return [$row->key => $label ?: 'Untitled form'];
+            })->all();
     }
 
     /** Stored responses to pick from on a step page: [id => "#id · label"]. */

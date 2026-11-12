@@ -35,4 +35,28 @@ class CreatorDemoTest extends TestCase
         $this->getJson('/demo/stored/edit-together')->assertOk()->assertJsonPath('forms.json.title', 'Team edits');
         $this->assertNotSame('{"title":"Team edits"}', DB::table('forms')->where('key', 'support')->value('json'));
     }
+
+    public function test_collaborative_form_choices_and_stored_data_follow_the_selected_form(): void
+    {
+        $this->assertNotNull(DB::table('forms')->where('key', 'contact-team')->value('json'));
+        DB::table('forms')->where('key', 'contact-team')->update(['json' => '{"title":"Edited contact form"}']);
+        DB::table('forms')->insert(['key' => 'team-created', 'json' => '{"title":{"default":"A new team form"}}']);
+        $this->seed(CreatorDemoSeeder::class);
+
+        $this->withoutVite()->get('/examples/edit-together?form=contact-team')->assertOk()
+            ->assertSee('Edited contact form')->assertSee('A new team form')
+            ->assertDontSee('value="support-assets"', false)
+            ->assertDontSee('data-show="connection-status"', false)
+            ->assertDontSee('data-show="schema-status"', false);
+        $this->getJson('/demo/stored/edit-together?key=contact-team')->assertOk()
+            ->assertJsonPath('forms.key', 'contact-team')->assertJsonPath('forms.json.title', 'Edited contact form');
+        $this->getJson('/demo/stored/edit-together?key=team-created')->assertOk()
+            ->assertJsonPath('forms.json.title.default', 'A new team form');
+    }
+
+    public function test_invalid_collaborative_form_ids_are_rejected(): void
+    {
+        $this->withoutVite()->get('/examples/edit-together?form[]=support-team')->assertBadRequest();
+        $this->get('/examples/edit-together?form=invalid/path')->assertBadRequest();
+    }
 }

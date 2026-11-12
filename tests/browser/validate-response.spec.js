@@ -18,25 +18,27 @@ test('sample answers submit once and show success only after a returned response
     expect(payload.formId).toBe('claim');
     expect(payload.data.customer_email).toBe('ann@example.com');
     await page.getByRole('button', { name: 'Start over', exact: true }).click();
-    await expect(page.locator('[data-show="validation-status"]')).toHaveText('No response checked');
-    await expect(page.locator('[data-show="validation-payload"]')).toBeEmpty();
+    await expect(page.getByRole('textbox', { name: /Email/ })).toBeEmpty();
+    await expect(page.getByRole('button', { name: 'Submit claim', exact: true })).toBeVisible();
 });
 
-test('tampered payloads show the field errors and a generic bad request is not called a validation rejection', async ({ page }) => {
+test('tampered payloads and field errors appear in Requests and a generic bad request is not called a validation rejection', async ({ page }) => {
     let generic = false;
     await page.route('**/api/responses', route => generic
         ? route.fulfill({ status: 400, json: { error: 'Invalid request envelope' } })
         : route.fulfill({ status: 400, json: { errors: [{ type: 'invalidChoiceValue', path: 'incident' }] } }));
     await page.goto('/examples/validate-response');
     await page.getByRole('button', { name: 'An unknown choice', exact: true }).click();
-    await expect(page.locator('[data-show="validation-status"]')).toHaveText('Response rejected. No data was saved.');
-    await expect(page.locator('#validation-errors')).toContainText('What happened?: invalidChoiceValue');
-    await page.getByText('Submitted payload', { exact: true }).click();
-    await expect(page.locator('[data-show="validation-payload"]')).toContainText('"incident": "meteor"');
+    await page.getByRole('tab', { name: /^Requests/ }).click();
+    await expect(page.locator('#notes > li').first()).toHaveText('Invalid response rejected as expected. No data was saved.');
+    const request = page.locator('#requests > li').filter({ hasText: '/api/responses' });
+    await request.locator('[data-row-toggle]').click();
+    await expect(request.locator('[data-field="request-body"]')).toContainText('"incident": "meteor"');
+    await expect(request.locator('[data-field="response-body"]')).toContainText('invalidChoiceValue');
     generic = true;
     await page.getByRole('button', { name: 'An unknown choice', exact: true }).click();
-    await expect(page.locator('[data-show="validation-status"]')).toHaveText('Invalid request envelope');
-    await expect(page.locator('#validation-errors')).toBeEmpty();
+    await expect(page.locator('#notes > li').first()).toHaveText('Invalid request envelope');
+    await expect(page.locator('#notes > li').first()).toHaveAttribute('data-kind', 'error');
 });
 
 test('failed validation and missing IDs keep the submission retryable', async ({ page }) => {
@@ -51,7 +53,7 @@ test('failed validation and missing IDs keep the submission retryable', async ({
     await page.getByRole('button', { name: 'Submit claim', exact: true }).click();
     await expect(page.getByRole('heading', { name: "Your claim hasn't been saved.", exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Try again', exact: true }).click();
-    await expect(page.locator('[data-show="validation-status"]')).toContainText("didn't confirm a saved response");
+    await expect(page.locator('#form')).toContainText("didn't confirm a saved response");
     await page.getByRole('button', { name: 'Try again', exact: true }).click();
     await expect(page.getByText('Response ID: 712', { exact: true })).toBeVisible();
     expect(attempt).toBe(3);
