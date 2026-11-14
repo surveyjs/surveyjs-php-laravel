@@ -25,7 +25,7 @@ on:
         type: string
         default: ""
       service:
-        description: "SurveyJS service: off | on"
+        description: "SurveyJS service: off | on | in-process (in-process platforms: nodejs, nextjs)"
         type: string
         default: "off"
       ai:

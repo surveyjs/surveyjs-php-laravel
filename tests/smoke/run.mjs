@@ -9,7 +9,10 @@
 //
 // Options (environment), as in shared/contract-tests/run.mjs:
 //   BASE_URL             the app (default http://127.0.0.1:8000)
-//   SERVICE=off|on       SurveyJS service: off expects 503 "not running"
+//   SERVICE=off|on|in-process
+//                        off: the SurveyJS service isn't running, so its examples expect 503 "not running"
+//                        on: the app calls the SurveyJS service (php, aspnet, python): real answers, the status mapping's texts
+//                        in-process: the SurveyJS libraries run in the app (nodejs, nextjs): the same checks as on, with the in-process mapping's texts
 //   AI=off|stub          ai-translation and extract-from-paper: off expects 501 / 503, stub expects answers
 //   VALIDATE_RESPONSES   true when the app runs validate-response in place of save-response
 //   LINT_DEFINITIONS     true when the app runs lint-definition in place of the creator-load-save PUT
@@ -25,13 +28,22 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
-const SERVICE = process.env.SERVICE === "on" ? "on" : "off";
+const SERVICE = process.env.SERVICE || "off";
+if (!["off", "on", "in-process"].includes(SERVICE)) { console.error(`Unknown SERVICE=${SERVICE} (expected off, on or in-process)`); process.exit(2); }
+const LIVE = SERVICE !== "off";           // on and in-process run the same checks; only TEXTS differ
 const AI = process.env.AI === "stub" ? "stub" : "off";
 const flag = (name) => /^(1|true|on|yes)$/i.test(process.env[name] ?? "");
 const VALIDATE = flag("VALIDATE_RESPONSES");
 const LINT = flag("LINT_DEFINITIONS");
 const RELAY_URL = process.env.RELAY_URL?.replace(/\/$/, "");
 const EDIT_RELAY_URL = process.env.EDIT_RELAY_URL?.replace(/\/$/, "");
+
+// The answers that differ between the service mapping (on) and the in-process mapping. The same table is in
+// the contract test (shared/contract-tests/run.mjs): the two scripts don't import each other, so keep them in step.
+const TEXTS = {
+  on: { noAiProvider: "The SurveyJS service has no AI provider configured" },
+  "in-process": { noAiProvider: "No AI provider is configured for document extraction" },
+};
 
 const manifestFile = process.env.MANIFEST
   ? resolve(process.env.MANIFEST)
@@ -159,7 +171,7 @@ const ENDPOINTS = {
   "creator-load-save": ["PUT /api/forms/:id", async () => {
     const r = await http("PUT", `/api/forms/${unique("smoke")}`, { json: definition });
     if (!LINT) return expectStatus(r, 204, "PUT /api/forms");
-    if (SERVICE === "off") return expectError(r, 503, "PUT /api/forms (LINT_DEFINITIONS)", "not running");
+    if (!LIVE) return expectError(r, 503, "PUT /api/forms (LINT_DEFINITIONS)", "not running");
     expectStatus(r, [200, 204], "PUT /api/forms (LINT_DEFINITIONS)");
   }],
   "creator-uploads": ["POST /api/files", async () => {
@@ -181,20 +193,20 @@ const ENDPOINTS = {
   "validate-response": ["POST /api/responses (validated)", async () => {
     if (!VALIDATE) skip("VALIDATE_RESPONSES is off");
     const r = await http("POST", "/api/responses", { json: { formId: "claim", data: claimData } });
-    if (SERVICE === "off") return expectError(r, 503, "POST /api/responses", "not running");
+    if (!LIVE) return expectError(r, 503, "POST /api/responses", "not running");
     expectStatus(r, 201, "POST /api/responses");
   }],
   "lint-definition": ["PUT /api/forms/:id (linted)", async () => {
     if (!LINT) skip("LINT_DEFINITIONS is off");
     const r = await http("PUT", `/api/forms/${unique("smoke")}`, { json: definition });
-    if (SERVICE === "off") return expectError(r, 503, "PUT /api/forms", "not running");
+    if (!LIVE) return expectError(r, 503, "PUT /api/forms", "not running");
     expectStatus(r, 204, "PUT /api/forms");
   }],
   "server-pdf": ["GET /api/claims/:id/pdf", async () => {
     const claim = await http("POST", "/api/claims", { json: { data: claimData, definitionVersion: "v1" } });
     expectStatus(claim, 201, "POST /api/claims (the fixture)");
     const r = await http("GET", `/api/claims/${claim.data.id}/pdf`);
-    if (SERVICE === "off") return expectError(r, 503, "GET /api/claims/:id/pdf", "not running");
+    if (!LIVE) return expectError(r, 503, "GET /api/claims/:id/pdf", "not running");
     expectStatus(r, 200, "GET /api/claims/:id/pdf");
     expect((r.headers.get("content-type") ?? "").startsWith("application/pdf"), `Content-Type ${r.headers.get("content-type")}`);
   }],
@@ -202,8 +214,8 @@ const ENDPOINTS = {
     const form = new FormData();
     form.append("scan", new Blob([readRepo("shared/samples/work-order-scan.png")], { type: "image/png" }), "work-order-scan.png");
     const r = await http("POST", "/api/work-orders/extract", { body: form });
-    if (SERVICE === "off") return expectError(r, 503, "POST /api/work-orders/extract", "not running");
-    if (AI === "off") return expectError(r, 503, "POST /api/work-orders/extract", "The SurveyJS service has no AI provider configured");
+    if (!LIVE) return expectError(r, 503, "POST /api/work-orders/extract", "not running");
+    if (AI === "off") return expectError(r, 503, "POST /api/work-orders/extract", TEXTS[SERVICE].noAiProvider);
     expectStatus(r, 200, "POST /api/work-orders/extract");
   }],
 };
