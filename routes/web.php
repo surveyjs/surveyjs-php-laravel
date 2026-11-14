@@ -21,19 +21,22 @@ Route::get('/examples/{slug}', function (Request $request, string $slug) {
     return view('examples.'.$slug, ['step' => $step]);
 })->where('slug', '[a-z0-9-]+')->name('example');
 
-// Shared client modules, definitions and samples live outside public/: serve only those three folders
+// Shared client modules, definitions, samples and the page UI live outside public/: serve only those four folders
 Route::get('/shared/{path}', function (string $path) {
     $file = realpath(base_path('shared/'.$path));
-    $allowed = array_map(fn ($dir) => realpath(base_path('shared/'.$dir)).DIRECTORY_SEPARATOR, ['client', 'definitions', 'samples']);
+    $allowed = array_map(fn ($dir) => realpath(base_path('shared/'.$dir)).DIRECTORY_SEPARATOR, ['client', 'definitions', 'samples', 'ui']);
     abort_unless($file && is_file($file) && collect($allowed)->contains(fn ($dir) => str_starts_with($file, $dir)), 404);
 
     $type = match (pathinfo($file, PATHINFO_EXTENSION)) {
         'js', 'mjs' => 'text/javascript; charset=utf-8',
+        'css' => 'text/css; charset=utf-8',
         'json' => 'application/json',
         'png' => 'image/png',
         'svg' => 'image/svg+xml',
         'jpg', 'jpeg' => 'image/jpeg',
         'pdf' => 'application/pdf',
+        'woff2' => 'font/woff2',
+        'txt' => 'text/plain; charset=utf-8',
         default => 'application/octet-stream',
     };
 

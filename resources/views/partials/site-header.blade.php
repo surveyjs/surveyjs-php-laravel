@@ -3,8 +3,8 @@
 <header class="border-b border-sjs-line bg-white">
     <div class="flex items-center gap-4 px-4 pt-4 pb-5 md:gap-5 md:px-6 md:pb-6 xl:px-8">
         <a href="https://surveyjs.io" class="shrink-0" target="_blank">
-            <img src="{{ asset('images/site/logo-small.svg') }}" width="78.1377" height="32" alt="SurveyJS" class="-mb-2 block md:hidden">
-            <img src="{{ asset('images/site/logo-medium.svg') }}" width="122.09" height="50" alt="SurveyJS" class="-mb-3 hidden md:block">
+            <img src="{{ asset('shared/ui/images/logo-small.svg') }}" width="78.1377" height="32" alt="SurveyJS" class="-mb-2 block md:hidden">
+            <img src="{{ asset('shared/ui/images/logo-medium.svg') }}" width="122.09" height="50" alt="SurveyJS" class="-mb-3 hidden md:block">
         </a>
         <span aria-hidden="true" class="block h-6 w-px shrink-0 bg-sjs-line md:h-[38px]"></span>
         <p class="m-0 text-base/5 font-bold text-sjs-fg md:text-xl/7 xl:text-2xl/8">{{ \App\Support\Demo::HEADER }}</p>

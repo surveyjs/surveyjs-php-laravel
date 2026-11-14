@@ -1,5 +1,5 @@
 // Browser tests for the step pages (tests/browser): what PHPUnit and the contract test can't see,
-// because they never run shared/client/host.js or resources/js/page-tabs.js. Chromium only.
+// because they never run shared/client/host.js or shared/ui/page-tabs.js. Chromium only.
 //
 //   npm run test:browser                     against composer dev (or composer start) on port 8000
 //   BASE_URL=http://127.0.0.1:9000 npm run test:browser

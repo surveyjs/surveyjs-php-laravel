@@ -1,4 +1,4 @@
-// resources/js/page-tabs.js: the side panel (Description, Requests, Data) and the main tabs (Demo,
+// shared/ui/page-tabs.js: the side panel (Description, Requests, Data) and the main tabs (Demo,
 // Code), the toggle and its badge, the hash, the phone sheet, the counter, the Data dot, the fade on
 // the panel's tab row and the bounded read-outs (design 04).
 import { expect, test } from '@playwright/test';
