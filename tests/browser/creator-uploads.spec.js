@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { backToEditor } from './helpers.js';
 
 const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-uploads.json', import.meta.url), 'utf8'));
 const image = { name: 'logo.png', mimeType: 'image/png', buffer: readFileSync(new URL('../../shared/samples/work-order-scan.png', import.meta.url)) };
@@ -110,9 +111,7 @@ test('a question image persists as a URL and appears in the saved form preview',
     await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
     const popup = await opened;
     await expect(popup.getByRole('img', { name: 'Support resources', exact: true })).toHaveAttribute('src', '/api/files/question-image');
-    const closed = popup.waitForEvent('close');
-    await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
-    await closed;
+    await backToEditor(popup);
     await expect(page.locator('#creator')).toBeVisible();
     expect(context.pages()).toEqual([page]);
 });

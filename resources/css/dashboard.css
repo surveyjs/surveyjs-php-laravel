@@ -2,3 +2,9 @@
 @import 'survey-core/survey-core.css';
 @import 'survey-analytics/survey.analytics.css';
 @import 'survey-core/themes/adapters/tailwind4.css';
+
+/* Use the portal's Tailwind font stack for Dashboard controls and charts. The adapter sets it only
+   inside .sjs-theme-overrides, which survey-core adds to forms but the Dashboard doesn't. */
+.sd-theme-root {
+    --sjs2-typography-font-family-text: var(--font-sans);
+}

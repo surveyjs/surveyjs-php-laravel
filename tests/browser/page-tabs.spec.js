@@ -225,6 +225,8 @@ test('4. the badge: while closed, on a request and on a Data change; it clears o
     await page.getByRole('button', { name: 'Start over' }).click();
     await completeSaveResponse(page, 'bob@example.com');
     await expect(badge(page)).toBeVisible();
+    // Data refreshes after the request: wait for it, or it can land after the panel closes again
+    await expect(toggle(page)).toHaveAttribute('aria-label', 'Show the panel, new requests and stored data changed');
     await toggle(page).click();
     await panelTab(page, 'requests').click();
     await panelTab(page, 'stored').click();

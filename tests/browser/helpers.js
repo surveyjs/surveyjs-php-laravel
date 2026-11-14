@@ -18,6 +18,18 @@ export async function slot(rowLocator, name) {
     return element.textContent();
 }
 
+/**
+ * A saved-form tab opened from the editor: select "Back to editor" and wait for the tab to close.
+ * The page closes itself in the click handler, so the click can fail with "Target page closed".
+ */
+export async function backToEditor(popup) {
+    const closed = popup.waitForEvent('close');
+    await popup.getByRole('link', { name: 'Back to editor', exact: true }).click().catch(error => {
+        if (!popup.isClosed()) throw error;
+    });
+    await closed;
+}
+
 /** save-response: fill in both required fields and send the message. */
 export async function completeSaveResponse(page, email = 'ann@example.com') {
     await page.getByRole('textbox', { name: /Your email/ }).fill(email);

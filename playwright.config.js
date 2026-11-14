@@ -22,6 +22,9 @@ export default defineConfig({
         name: 'chromium',
         use: {
             ...devices['Desktop Chrome'],
+            // Full Chromium in its new headless mode, not the headless shell: the shell has no PDF viewer
+            // and turns a navigation to a PDF into a download, so server-pdf's tab never shows the blob: URL.
+            channel: 'chromium',
             viewport: { width: 1440, height: 900 },
             // Under composer dev, a page the test fulfils itself loads its assets from Vite on [::1]:5173;
             // Chrome's Local Network Access checks would block that. Built assets (CI) don't need it.
