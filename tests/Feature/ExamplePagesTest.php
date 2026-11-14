@@ -66,7 +66,7 @@ class ExamplePagesTest extends TestCase
         }
         $this->assertSame(
             collect($steps)->filter(fn ($step) => str_contains($step['licence'], 'needs an AI provider'))->count(),
-            substr_count($html, '>Needs an AI provider</span>'),
+            substr_count($html, '>AI Provider Required</span>'),
         );
         // The licence moved from the section headers to the cards
         $this->assertSame(count($steps), preg_match_all('~>(MIT|Commercial)</span>~', $html));
@@ -297,6 +297,33 @@ class ExamplePagesTest extends TestCase
             $this->assertStringContainsString('data-field="'.$slot.'"', $template);
         }
         $this->assertStringContainsString('data-row-toggle aria-expanded="false"', $template);
+    }
+
+    /** The step scripts clone these rows and fill them by data-field: the classes stay in the views. */
+    public static function rowTemplates(): array
+    {
+        return [
+            'relational-storage' => ['relational-storage', 'mapping-row', ['question', 'value-name', 'column']],
+            'lint-definition' => ['lint-definition', 'lint-finding', ['severity', 'rule', 'location', 'message']],
+        ];
+    }
+
+    #[DataProvider('rowTemplates')]
+    public function test_the_step_row_templates_have_their_slots(string $slug, string $id, array $fields): void
+    {
+        $template = $this->between($this->withoutVite()->get("/examples/{$slug}")->assertOk()->getContent(), "<template id=\"{$id}\">", '</template>');
+
+        preg_match_all('~<td data-field="([^"]+)" class="[^"]+"></td>~', $template, $cells);
+        $this->assertSame($fields, $cells[1]);
+    }
+
+    public function test_shared_scripts_set_no_css_classes(): void
+    {
+        $files = glob(base_path('shared/{client,ui}/*.js'), GLOB_BRACE);
+        $this->assertNotEmpty($files);
+        $offending = array_values(array_filter($files, fn (string $file) => preg_match('~\.className\b|\.classList\b~', (string) file_get_contents($file))));
+
+        $this->assertSame([], array_map('basename', $offending), 'Shared scripts must clone the templates the page provides');
     }
 
     private function between(string $html, string $from, string $to): string

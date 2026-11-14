@@ -36,7 +36,7 @@ test('1. a template without the body slots: the page works as before and nothing
     await expect(posted.locator('[data-field="url"]')).toHaveText('/api/responses');
     await expect(posted.locator('[data-field="status"]')).toHaveText('201');
     await expect(posted.locator('[data-field="time"]')).toHaveText(/^\d+ ms$/);
-    await expect(page.locator('#notes > li').first()).toHaveText(/^Response #\d+: PHP saved the submitted data without changes\.$/);
+    await expect(page.locator('#notes > li').first()).toHaveText(/^Response #\d+: the server saved the submitted data without changes\.$/);
     await expect(page.locator('#notes > li').first()).toHaveAttribute('data-kind', 'ok');
 
     // The caller gets the same body as a request from outside the page

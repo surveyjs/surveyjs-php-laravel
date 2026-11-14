@@ -37,3 +37,9 @@
 @section('form')
     <div id="creator" hidden inert class="h-[calc(100dvh_-_var(--header-h,3.5rem)_-_var(--tabs-h,3.5rem)_-_var(--demo-above,1rem)_-_1.5rem)] min-h-[640px]"></div>
 @endsection
+
+@section('templates')
+<template id="lint-finding">
+    <tr><td data-field="severity" class="border-t border-gray-200 px-3 py-2 align-top"></td><td data-field="rule" class="border-t border-gray-200 px-3 py-2 align-top"></td><td data-field="location" class="border-t border-gray-200 px-3 py-2 align-top"></td><td data-field="message" class="border-t border-gray-200 px-3 py-2 align-top"></td></tr>
+</template>
+@endsection

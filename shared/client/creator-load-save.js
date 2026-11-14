@@ -31,7 +31,11 @@ const saver = createSchemaSaver(() => creator.JSON, async json => {
   if (!response.ok) throw await responseError(response, "Couldn't save the form schema. Please try again.");
 }, updateSaveState);
 creator.saveSurveyFunc = (saveNo, callback) => {
-  saver.save().then(saved => callback(saveNo, saved));
+  saver.save().then(saved => {
+    callback(saveNo, saved);
+    // Creator says "not saved" in the callback; show the server's reason after it
+    if (!saved) creator.notify(saver.error, "error");
+  });
 };
 // #endregion
 
@@ -49,7 +53,6 @@ function updateSaveState({ state, error }) {
     : state === "error" ? `${error} Your changes remain in this editor.` : "Unsaved changes. Saving shortly...";
   show("schema-status", message);
   retrySave.hidden = state !== "error" || saveDenied;
-  if (state === "error") creator.notify(error, "error");
   if (restore) restore.disabled = busy || state === "saving" || saveDenied;
 }
 

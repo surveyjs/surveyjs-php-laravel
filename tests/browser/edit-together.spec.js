@@ -153,3 +153,37 @@ test('a new blank form has its own persistent form ID and invitation', async ({ 
     await page.getByRole('combobox', { name: 'Form', exact: true }).selectOption('');
     await expect.poll(() => new URL(page.url()).searchParams.get('form')).not.toBe(id);
 });
+
+test('Version History lists each change of the room once, for the author, a peer and a late joiner', async ({ context }) => {
+    const sockets = [], log = [];
+    await context.routeWebSocket(/\/ws\/forms\/support-team/, socket => {
+        socket.send(JSON.stringify(init(log, `client-${sockets.length + 1}`)));
+        sockets.push(socket);
+        socket.onMessage(raw => {
+            const message = JSON.parse(raw);
+            if (message.type !== 'append') return;
+            log.push(message.payload);
+            for (const peer of sockets) if (peer !== socket) peer.send(JSON.stringify({ type: 'record', payload: message.payload }));
+        });
+    });
+    const author = await context.newPage(), peer = await context.newPage();
+    await author.goto('/examples/edit-together');
+    await peer.goto('/examples/edit-together');
+    await expect(title(peer)).toHaveText(definition.title);
+    for (const value of ['One', 'Two']) {
+        await title(author).fill(value);
+        await title(author).blur();
+        await expect(title(peer)).toHaveText(value);
+    }
+    expect(log.length).toBeGreaterThan(1);   // the second edit changes the first one's record
+    const late = await context.newPage();
+    await late.goto('/examples/edit-together');
+    await expect(title(late)).toHaveText('Two');
+    for (const page of [author, peer, late]) {
+        await page.getByRole('button', { name: 'Collaboration' }).first().click();
+        await page.getByText('Show Version History', { exact: true }).locator('visible=true').first().click();
+        const changes = page.locator('.svc-version-history__row--change');
+        await expect(changes).toHaveCount(1);
+        await expect(changes).toContainText('Title of the survey changed to "Two"');
+    }
+});

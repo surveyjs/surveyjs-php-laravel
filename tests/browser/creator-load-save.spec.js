@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { backToEditor } from './helpers.js';
 
 const sample = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
 async function title(page, value) {
@@ -62,9 +63,7 @@ test('opening the form waits for save confirmation and renders the saved schema'
     expect(popup.url()).toBe('about:blank');
     pending.resolve();
     await expect(popup.locator('#creator .sd-title').first()).toContainText('Saved preview title');
-    const closed = popup.waitForEvent('close');
-    await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
-    await closed;
+    await backToEditor(popup);
     await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toHaveText('Saved preview title');
 });
 
@@ -103,9 +102,7 @@ test('Bob can open the saved form before and after denied edits without a save r
         await page.getByRole('link', { name: 'Open saved form', exact: true }).click();
         const popup = await opened;
         await expect(popup.locator('#creator .sd-title').first()).toHaveText(sample.title);
-        const closed = popup.waitForEvent('close');
-        await popup.getByRole('link', { name: 'Back to editor', exact: true }).click();
-        await closed;
+        await backToEditor(popup);
         expect(context.pages()).toEqual([page]);
     };
     await openForm();

@@ -50,7 +50,12 @@ function configureSaving() {
     retrySave.hidden = state !== "error";
     formSelector.disabled = state === "saving";
   });
-  creator.saveSurveyFunc = async (saveNo, callback) => callback(saveNo, await saver.save());
+  creator.saveSurveyFunc = async (saveNo, callback) => {
+    const saved = await saver.save();
+    callback(saveNo, saved);
+    // Creator says "not saved" in the callback; show the server's reason after it
+    if (!saved) creator.notify(saver.error, "error");
+  };
   creator.onModified.add(() => { if (ready && !collab.isApplying) saver.changed(); });
 }
 // #endregion
@@ -67,19 +72,27 @@ function initialize(message) {
   configureSaving();
   saver.markSaved();
   if (message.log.length) collab.apply(message.log);
+  const append = (_, { record }) => send({ type: "append", payload: record });
+  collab.onRecordAdded.add(append);
+  collab.onRecordChanged.add(append);
+  collab.onStateChanged.add(() => send({ type: "presence", state: collab.getState() }));
+}
+// #endregion
+
+// Demo only: Show Version History lists the room's log and this window's edits, one entry per
+// change: a record that updates an earlier change (same seq, op and target) replaces it
+function trackHistory(log) {
   const history = new Map();
   function addHistory(records) {
     for (const record of records) history.set(`${record.seq}:${record.op}:${record.payload?.target ?? ""}`, record);
     collab.setHistory([...history.values()]);
   }
-  addHistory(message.log);
-  const append = (_, { record }) => { send({ type: "append", payload: record }); addHistory([record]); };
-  collab.onRecordAdded.add(append);
-  collab.onRecordChanged.add(append);
-  collab.onStateChanged.add(() => send({ type: "presence", state: collab.getState() }));
+  addHistory(log);
+  const local = (_, { record }) => addHistory([record]);
+  collab.onRecordAdded.add(local);
+  collab.onRecordChanged.add(local);
   return addHistory;
 }
-// #endregion
 
 function connect() {
   if (ws && [WebSocket.CONNECTING, WebSocket.OPEN].includes(ws.readyState)) return;
@@ -94,7 +107,8 @@ function connect() {
   ws.addEventListener("message", event => {
     const message = JSON.parse(event.data);
     if (message.type === "init") {
-      addHistory = initialize(message);
+      initialize(message);
+      addHistory = trackHistory(message.log);
       ready = true;
       saver.changed();
       if (saver.dirty) creator.setModified({ type: "COLLABORATION" });

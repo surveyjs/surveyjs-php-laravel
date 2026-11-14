@@ -20,7 +20,11 @@ const saver = createSchemaSaver(() => creator.JSON, async json => {
   showError(state === "error" ? `${error} Your translations remain in the editor.` : "");
   updateControls();
 });
-creator.saveSurveyFunc = (saveNo, callback) => saver.save().then(saved => callback(saveNo, saved));
+creator.saveSurveyFunc = (saveNo, callback) => saver.save().then(saved => {
+  callback(saveNo, saved);
+  // Creator says "not saved" in the callback; show the server's reason after it
+  if (!saved) creator.notify(saver.error, "error");
+});
 creator.onModified.add(() => { if (loaded) saver.changed(); });
 
 // #region sjs:ai-translation.client

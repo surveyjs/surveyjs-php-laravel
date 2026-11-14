@@ -6,7 +6,10 @@
 //
 // Options (environment):
 //   BASE_URL             the app (default http://127.0.0.1:8000)
-//   SERVICE=off|on       SurveyJS service: off expects 503 "not running", on expects real answers
+//   SERVICE=off|on|in-process
+//                        off: the SurveyJS service isn't running, so its examples expect 503 "not running"
+//                        on: the app calls the SurveyJS service (php, aspnet, python): real answers, the status mapping's texts
+//                        in-process: the SurveyJS libraries run in the app (nodejs, nextjs): the same checks as on, with the in-process mapping's texts
 //   AI=off|stub          ai-translation and extract-from-paper: off expects 501 / 503, stub expects ai-stub.mjs answers
 //   VALIDATE_RESPONSES   true when the app runs validate-response in place of save-response
 //   LINT_DEFINITIONS     true when the app runs lint-definition in place of the creator-load-save PUT
@@ -21,7 +24,9 @@ import { randomBytes } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 
 const BASE_URL = (process.env.BASE_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
-const SERVICE = process.env.SERVICE === "on" ? "on" : "off";
+const SERVICE = process.env.SERVICE || "off";
+if (!["off", "on", "in-process"].includes(SERVICE)) { console.error(`Unknown SERVICE=${SERVICE} (expected off, on or in-process)`); process.exit(2); }
+const LIVE = SERVICE !== "off";           // on and in-process run the same checks; only TEXTS differ
 const AI = process.env.AI === "stub" ? "stub" : "off";
 const flag = (name) => /^(1|true|on|yes)$/i.test(process.env[name] ?? "");
 const VALIDATE = flag("VALIDATE_RESPONSES");
@@ -29,6 +34,13 @@ const LINT = flag("LINT_DEFINITIONS");
 const DEMO = flag("DEMO_MODE");
 const RELAY_URL = process.env.RELAY_URL?.replace(/\/$/, "");
 const EDIT_RELAY_URL = process.env.EDIT_RELAY_URL?.replace(/\/$/, "");
+
+// The answers that differ between the service mapping (on) and the in-process mapping. The same table is in
+// the smoke test (tests/smoke/run.mjs): the two scripts don't import each other, so keep them in step.
+const TEXTS = {
+  on: { noAiProvider: "The SurveyJS service has no AI provider configured" },
+  "in-process": { noAiProvider: "No AI provider is configured for document extraction" },
+};
 
 const ALL_STEPS = ["save-response", "load-definition-variables-data", "resume-progress", "store-files", "choices-from-web", "async-functions", "relational-storage", "fill-together", "dashboard", "creator-load-save", "creator-uploads", "ai-translation", "variable-presets", "edit-together", "validate-response", "lint-definition", "server-pdf", "extract-from-paper"];
 
@@ -318,10 +330,10 @@ check("variable-presets: GET, 404, 403 for Bob, PUT stored as-is", "variable-pre
 
 // ---------- validate-response
 const claimData = { customer_email: "valid@example.com", amount: 120, incident: "theft", details: "Contract test" };
-check(`validate-response POST /api/responses is validated by the service (SERVICE=${SERVICE})`, "validate-response", async () => {
+check(`validate-response POST /api/responses is validated on the server (SERVICE=${SERVICE})`, "validate-response", async () => {
   const before = (await stored("validate-response")).responses?.[0]?.id ?? 0;
   const valid = await http("POST", "/api/responses", { json: { formId: "claim", data: claimData } });
-  if (SERVICE === "off") return expectError(valid, 503, "POST /api/responses", "not running");
+  if (!LIVE) return expectError(valid, 503, "POST /api/responses", "not running");
   expectStatus(valid, 201, "a valid response");
   for (const [what, data] of [
     ["an unknown choice", { ...claimData, incident: "meteor" }],
@@ -337,11 +349,11 @@ check(`validate-response POST /api/responses is validated by the service (SERVIC
 }, { skip: !VALIDATE && "VALIDATE_RESPONSES is off" });
 
 // ---------- lint-definition
-check(`lint-definition PUT /api/forms/:id is linted by the service (SERVICE=${SERVICE})`, "lint-definition", async () => {
+check(`lint-definition PUT /api/forms/:id is linted on the server (SERVICE=${SERVICE})`, "lint-definition", async () => {
   const put = (key, json) => http("PUT", `/api/forms/${key}`, { json });
   const clean = unique("contract");
   const r0 = await put(clean, { elements: [{ type: "text", name: "q1" }] });
-  if (SERVICE === "off") return expectError(r0, 503, "PUT /api/forms", "not running");
+  if (!LIVE) return expectError(r0, 503, "PUT /api/forms", "not running");
   expectStatus(r0, 204, "a clean definition");
   for (const [what, definition] of [
     ["an unknown variable", { elements: [{ type: "text", name: "q1", visibleIf: "{nosuch} = 1" }] }],
@@ -364,7 +376,7 @@ check(`lint-definition PUT /api/forms/:id is linted by the service (SERVICE=${SE
 // ---------- server-pdf
 const pdfCheck = async (id) => {
   const r = await http("GET", `/api/claims/${id}/pdf`);
-  if (SERVICE === "off") return expectError(r, 503, "GET /api/claims/:id/pdf", "not running");
+  if (!LIVE) return expectError(r, 503, "GET /api/claims/:id/pdf", "not running");
   expectStatus(r, 200, "GET /api/claims/:id/pdf");
   expect((r.headers.get("content-type") ?? "").startsWith("application/pdf"), `Content-Type ${r.headers.get("content-type")}`);
   expect(r.bytes.subarray(0, 4).toString("latin1") === "%PDF", "the body starts with %PDF");
@@ -389,8 +401,8 @@ check(`extract-from-paper POST /api/work-orders/extract (SERVICE=${SERVICE}, AI=
   const form = new FormData();
   form.append("scan", new Blob([readShared("samples/work-order-scan.png")], { type: "image/png" }), "work-order-scan.png");
   const r = await http("POST", "/api/work-orders/extract", { body: form });
-  if (SERVICE === "off") expectError(r, 503, "POST /api/work-orders/extract", "not running");
-  else if (AI === "off") expectError(r, 503, "POST /api/work-orders/extract", "The SurveyJS service has no AI provider configured");
+  if (!LIVE) expectError(r, 503, "POST /api/work-orders/extract", "not running");
+  else if (AI === "off") expectError(r, 503, "POST /api/work-orders/extract", TEXTS[SERVICE].noAiProvider);
   else {
     expectStatus(r, 200, "POST /api/work-orders/extract");
     expectEqual(r.data?.answers, JSON.parse(readShared("samples/work-order-scan.answers.json")), "answers");

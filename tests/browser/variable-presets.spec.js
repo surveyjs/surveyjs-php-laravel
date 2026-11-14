@@ -65,6 +65,7 @@ test('permission failures are visible and keep the edited scenario in the editor
     await page.goto('/examples/variable-presets');
     await editBasicPlan(page);
     await expect(page.locator('#creator-error')).toContainText("You don't have editor rights");
+    await expect(page.locator('.svc-notifier')).toHaveText("You don't have editor rights");   // the server's reason, not Creator's own message
     await expect(page.getByRole('switch', { name: /Call me back within one hour/ })).toBeVisible();
 });
 

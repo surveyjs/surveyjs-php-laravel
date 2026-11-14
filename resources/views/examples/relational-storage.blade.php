@@ -38,3 +38,9 @@
     </section>
     <div id="form" class="p-4 sm:p-6"></div>
 @endsection
+
+@section('templates')
+<template id="mapping-row">
+    <tr><td data-field="question" class="px-3 py-2 font-mono text-xs"></td><td data-field="value-name" class="px-3 py-2 font-mono text-xs"></td><td data-field="column" class="px-3 py-2 font-mono text-xs"></td></tr>
+</template>
+@endsection
