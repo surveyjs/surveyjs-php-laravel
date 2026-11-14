@@ -8,7 +8,7 @@
 
 @section('try')
     <li>In <strong>Preview</strong>, switch from <strong>Basic</strong> to <strong>Premium</strong> using the variable preset selector at the bottom. The <code>customerTier</code> variable controls whether the <strong>Call me back within one hour</strong> from field appears.</li>
-    <li>Click <strong>Manage presets</strong> and edit a preset's customer plan or add a scenario. Preset changes are saved automatically.</li>
+    <li>Click <strong>Manage presets</strong> and edit a preset's customer plan or add a scenario. Preset changes are saved automatically, through the same <code>Gate::authorize('edit-forms')</code> check as <strong>Load and Save Form JSON Schemas</strong>.</li>
     <li>Reload the page to check that the edited presets were saved. Open <strong>Requests</strong> to inspect the requests that load and save presets.</li>
 @endsection
 

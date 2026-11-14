@@ -33,6 +33,7 @@ export function createSchemaSaver(getDefinition, write, onState) {
     changed() { error = null; publish(); },
     markSaved() { saved = snapshot(); error = null; publish(); },
     get dirty() { return snapshot() !== saved; },
+    get error() { return error; },
   };
 }
 

@@ -55,7 +55,7 @@ for (const slug of ['store-files', 'creator-uploads']) {
             await expect(notes(page, 'ok').first()).toHaveText(/^Files uploaded\. Storing file IDs reduced the response size from .+ to .+\.$/);
             await expect(page.locator('[data-show="sizes"]')).toContainText('with file IDs;');
         } else {
-            await expect(notes(page, 'ok').first()).toHaveText('Logo uploaded. The form schema now references its URL.');
+            await expect(notes(page, 'ok').first()).toHaveText('Logo uploaded.');
             await expect.poll(() => savedDefinitions.some((definition) => definition.logo === '/api/files/uploaded-image')).toBe(true);
         }
     });

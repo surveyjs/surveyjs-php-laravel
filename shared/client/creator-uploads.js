@@ -26,10 +26,13 @@ const saver = createSchemaSaver(() => creator.JSON, async json => {
   saving = state === "saving";
   showError(state === "error" ? `${error} Your schema changes remain in the editor. Uploaded files are retained.` : "");
   retrySave.hidden = state !== "error";
-  if (state === "error") creator.notify(error, "error");
   updateControls();
 });
-creator.saveSurveyFunc = (saveNo, callback) => saver.save().then(saved => callback(saveNo, saved));
+creator.saveSurveyFunc = (saveNo, callback) => saver.save().then(saved => {
+  callback(saveNo, saved);
+  // Creator says "not saved" in the callback; show the server's reason after it
+  if (!saved) creator.notify(saver.error, "error");
+});
 creator.onModified.add(() => { if (loaded) saver.changed(); });
 
 // #region sjs:creator-uploads.client

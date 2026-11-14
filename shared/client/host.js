@@ -1,6 +1,7 @@
 // Demo only: everything around the examples on a step page. Mounting the form or Creator, the
 // requests log, the "What the server stored" panel and the demo-user switch. None of this is part
-// of an integration, and the step code doesn't depend on it beyond mountSurvey() and mountCreator().
+// of an integration, and the step code doesn't depend on it beyond mountSurvey(). Creator pages
+// render with renderSurveyCreator() from survey-creator-js; mountCreator() stays exported.
 //
 // It finds page elements by id, data- attributes and <template> slots and never uses CSS classes,
 // so each platform styles its own templates. Step modules import this file first.
@@ -42,7 +43,8 @@ function isDemoRequest(url) {
   return u.origin !== location.origin || u.pathname.startsWith("/demo/") || u.pathname.startsWith("/shared/");
 }
 
-function fill(template, values) {
+/** Clone the page's <template id="…"> and put each value into its data-field="<key>" slots as text. */
+export function fill(template, values) {
   const tpl = document.getElementById(template);
   if (!tpl) return null;
   const node = tpl.content.firstElementChild.cloneNode(true);

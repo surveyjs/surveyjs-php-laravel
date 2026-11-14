@@ -1,5 +1,5 @@
 // Lint JSON Schemas
-import { note, page } from "./host.js";
+import { fill, note, page } from "./host.js";
 import { SurveyCreator, renderSurveyCreator } from "survey-creator-js";
 import { responseError } from "./schema-saver.js";
 
@@ -16,18 +16,15 @@ function reportFindings(report) {
     ...(report.errors ?? []).map(finding => ({ ...finding, severity: "Error" })),
     ...(report.warnings ?? []).map(finding => ({ ...finding, severity: "Warning" }))
   ];
-  document.getElementById("lint-findings").replaceChildren(...findings.map(finding => {
-    const row = document.createElement("tr");
-    for (const value of [finding.severity, finding.ruleId ?? finding.type ?? "—", finding.path ?? finding.elementName ?? "—", finding.message ?? finding.text ?? "Check the schema"]) {
-      const cell = document.createElement("td");
-      cell.className = "border-t border-gray-200 px-3 py-2 align-top";
-      cell.textContent = typeof value === "string" ? value : JSON.stringify(value);
-      row.append(cell);
-    }
-    return row;
-  }));
+  const text = value => typeof value === "string" ? value : JSON.stringify(value);
+  document.getElementById("lint-findings").replaceChildren(...findings.map(finding => fill("lint-finding", {
+    severity: finding.severity,
+    rule: text(finding.ruleId ?? finding.type ?? "—"),
+    location: text(finding.path ?? finding.elementName ?? "—"),
+    message: text(finding.message ?? finding.text ?? "Check the schema"),
+  })));
+  // Findings always come with a note, and the page shows its read-outs once a note arrives
   document.getElementById("lint-report").hidden = !findings.length;
-  document.getElementById("readouts").hidden = !findings.length && !document.getElementById("notes").children.length;
 }
 
 // #region sjs:lint-definition.client

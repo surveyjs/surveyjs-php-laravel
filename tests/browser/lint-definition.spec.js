@@ -21,6 +21,8 @@ test('samples load into Creator without saving, and Save reports errors or accep
     });
     await page.goto('/examples/lint-definition');
     await expect(page.locator('[data-show="lint-status"]')).toHaveCount(0);
+    await expect(page.getByRole('textbox', { name: 'Survey Title', exact: true })).toBeVisible();
+    await expect(page.locator('#readouts')).toBeHidden();
     const cases = [
         ['Broken reference', 'reference/unknown', 'error', "{prodcut} = 'Survey Creator'"],
         ['Invalid expression', 'expression/syntax', 'error', '{product} = '],
@@ -37,6 +39,11 @@ test('samples load into Creator without saving, and Save reports errors or accep
         await page.getByRole('tab', { name: /^Requests/ }).click();
         await expect(page.locator('#lint-findings')).toContainText(rule);
         await expect(page.locator('#lint-findings')).toContainText(severity === 'error' ? 'Error' : 'Warning');
+        await expect(page.locator('#lint-report')).toBeVisible();
+        const cells = page.locator('#lint-findings > tr', { hasText: rule }).first().locator('td');
+        await expect(cells).toHaveCount(4);
+        await expect(cells.nth(0)).toHaveText(severity === 'error' ? 'Error' : 'Warning');
+        await expect(cells.nth(1)).toHaveText(rule);
         expect(writes).toHaveLength(before + 1);
         expect(writes.at(-1).pages[0].elements.find(question => question.name === 'issue').visibleIf).toBe(expression);
         if (severity === 'error') {

@@ -9,7 +9,6 @@
     $commercial = str_starts_with($step['licence'], 'Commercial');
     $theme = trim($__env->yieldContent('theme', 'survey'));
     $hasActions = count($users) > 1 || trim($__env->yieldContent('actions')) !== '';
-    $hasReadouts = trim($__env->yieldContent('readouts')) !== '';
     // The tab buttons of both columns (design 02's header tabs)
     $tabClass = 'flex h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-0 bg-transparent px-3.5 text-[15px] font-semibold text-gray-600 shadow-[inset_0_-3px_0_transparent] [font-family:inherit] hover:text-gray-900 aria-selected:text-gray-900 aria-selected:shadow-[inset_0_-3px_0_var(--color-sjs)]';
     $panelTabs = ['description' => 'Description', 'requests' => 'Requests', 'stored' => 'Data'];
@@ -116,7 +115,8 @@
 
             {{-- REQUESTS: read-outs and notes (bounded, the newest note on top), then the log, which scrolls --}}
             <section id="panel-requests" role="tabpanel" aria-labelledby="panel-tab-requests" hidden class="flex min-h-0 flex-1 flex-col text-sm">
-                <div id="readouts" @unless ($hasReadouts) hidden @endunless class="max-h-[10rem] shrink-0 space-y-1.5 overflow-y-auto border-b border-gray-200 p-3 max-sm:max-h-[8rem]">
+                {{-- Hidden until the first note: page-tabs.js shows it then (lint-definition's findings come with one) --}}
+                <div id="readouts" hidden class="max-h-[10rem] shrink-0 space-y-1.5 overflow-y-auto border-b border-gray-200 p-3 max-sm:max-h-[8rem]">
                     @yield('readouts')
                     <ul id="notes" hidden class="m-0 list-none space-y-1 p-0 text-sm"></ul>
                 </div>
@@ -257,5 +257,7 @@
 <template id="note">
     <li data-field="text" class="rounded border px-3 py-1.5 data-[kind=error]:border-red-200 data-[kind=error]:bg-red-50 data-[kind=error]:text-red-800 data-[kind=info]:border-gray-200 data-[kind=info]:bg-white data-[kind=ok]:border-sjs/40 data-[kind=ok]:bg-emerald-50 data-[kind=ok]:text-emerald-900"></li>
 </template>
+{{-- The step's own rows, cloned the same way (relational-storage's mapping, lint-definition's findings) --}}
+@yield('templates')
 </body>
 </html>
