@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
+const definition = sharedJson('definitions/creator-load-save.json');
 const init = (log = [], clientId = 'client-1') => ({ type: 'init', clientId, seed: definition, log });
 const title = page => page.getByRole('textbox', { name: 'Survey Title', exact: true });
 
@@ -78,7 +79,7 @@ test('disconnect preserves a downloadable copy and reconnect replaces the frozen
 });
 
 test('selected forms have separate shared edits, invite links, saves, and stored data', async ({ context }) => {
-    const contact = JSON.parse(readFileSync(new URL('../../shared/definitions/save-response.json', import.meta.url), 'utf8'));
+    const contact = sharedJson('definitions/save-response.json');
     const saved = { 'support-team': definition, 'contact-team': contact };
     const rooms = new Map(), writes = [];
     await context.route('**/api/forms/*', route => {

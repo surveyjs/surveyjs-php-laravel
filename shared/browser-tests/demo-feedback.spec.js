@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson, sharedPath } from './helpers.js';
 
 const image = {
     name: 'receipt.png',
     mimeType: 'image/png',
-    buffer: readFileSync(new URL('../../shared/samples/work-order-scan.png', import.meta.url)),
+    buffer: readFileSync(sharedPath('samples/work-order-scan.png')),
 };
-const creatorDefinition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
+const creatorDefinition = sharedJson('definitions/creator-load-save.json');
 const notes = (page, kind) => page.locator(`#notes > li[data-kind="${kind}"]`);
 
 async function openRequests(page, slug) {

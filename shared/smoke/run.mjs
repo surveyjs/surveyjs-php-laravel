@@ -5,7 +5,7 @@
 // copy (the weekly and release pipelines: .github/workflows/smoke.yml). Platform-neutral: the steps,
 // titles and pages come from surveyjs-integration.json; the request shapes and error texts from run.mjs.
 //
-//   BASE_URL=https://surveyjs-php.demos.surveyjs.io node tests/smoke/run.mjs [--steps save-response,choices-from-web]
+//   BASE_URL=https://surveyjs-php.demos.surveyjs.io node shared/smoke/run.mjs [--steps save-response,choices-from-web]
 //
 // Options (environment), as in shared/contract-tests/run.mjs:
 //   BASE_URL             the app (default http://127.0.0.1:8000)

@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { lintSurvey } from 'survey-core/linter';
-import { row } from './helpers.js';
+import { row, sharedJson } from './helpers.js';
 
-const sample = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
+const sample = sharedJson('definitions/creator-load-save.json');
 
 test('samples load into Creator without saving, and Save reports errors or accepts warnings', async ({ page }) => {
     let saved = sample;

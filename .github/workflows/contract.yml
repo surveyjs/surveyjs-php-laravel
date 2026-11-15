@@ -1,7 +1,7 @@
 # Checks that this repository still matches the Server Integration page (contract server-integration-v4):
 # the manifest and regions, PHPUnit (every row of the SurveyJS service status mapping, mocked),
 # then the shared contract test twice: without the service, and with it plus the AI stub. Between
-# the two, the browser tests (tests/browser, Playwright and Chromium) run the step pages.
+# the two, the browser tests (shared/browser-tests, Playwright and Chromium) run the step pages.
 # The smoke test (.github/workflows/smoke.yml) also runs once without the service.
 # The image job builds the app's Docker image and starts it as docker-compose.yml does.
 name: Contract
@@ -59,7 +59,7 @@ jobs:
           AI: "off"
 
       # host.js and page-tabs.js in a real browser: what PHPUnit and the contract test never run.
-      # Playwright starts the app on port 8000 (playwright.config.js)
+      # Playwright seeds database/browser-tests.sqlite and starts the app on port 8000 (playwright.config.js)
       - name: Browser tests (Chromium)
         run: |
           npx playwright install --with-deps chromium
@@ -111,7 +111,8 @@ jobs:
         run: curl -sf --retry 30 --retry-delay 2 --retry-all-errors http://127.0.0.1:8000/up > /dev/null
 
       - name: Behind a TLS proxy, assets are https
-        run: curl -sf -H 'X-Forwarded-Proto: https' http://127.0.0.1:8000/ | grep -q 'https://127.0.0.1:8000/build/'
+        run: |
+          curl -sf -H 'X-Forwarded-Proto: https' http://127.0.0.1:8000/ | grep -q 'https://127.0.0.1:8000/build/'
 
       - name: Production settings
         run: |

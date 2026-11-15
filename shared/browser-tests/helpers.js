@@ -1,6 +1,17 @@
-// Shared by the browser tests: rows of the requests log, the save-response form and a streaming server.
+// Shared by the browser tests: shared/ fixtures, rows of the requests log, the save-response form and a streaming server.
+import { readFileSync } from 'node:fs';
 import http from 'node:http';
 import { expect } from '@playwright/test';
+
+/** A file under shared/ (for example 'definitions/save-response.json'), wherever the spec that asks for it lives. */
+export function sharedPath(path) {
+    return new URL(`../${path}`, import.meta.url);
+}
+
+/** A JSON file under shared/, parsed. */
+export function sharedJson(path) {
+    return JSON.parse(readFileSync(sharedPath(path), 'utf8'));
+}
 
 /** The latest row of the requests log for a method and a URL that starts with path. */
 export function row(page, method, path) {

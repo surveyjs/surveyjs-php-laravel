@@ -36,7 +36,7 @@ const RELAY_URL = process.env.RELAY_URL?.replace(/\/$/, "");
 const EDIT_RELAY_URL = process.env.EDIT_RELAY_URL?.replace(/\/$/, "");
 
 // The answers that differ between the service mapping (on) and the in-process mapping. The same table is in
-// the smoke test (tests/smoke/run.mjs): the two scripts don't import each other, so keep them in step.
+// the smoke test (shared/smoke/run.mjs): the two scripts don't import each other, so keep them in step.
 const TEXTS = {
   on: { noAiProvider: "The SurveyJS service has no AI provider configured" },
   "in-process": { noAiProvider: "No AI provider is configured for document extraction" },

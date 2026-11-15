@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
-const presets = JSON.parse(readFileSync(new URL('../../shared/seed/variable-presets.json', import.meta.url), 'utf8')).support;
+const presets = sharedJson('seed/variable-presets.json').support;
 async function selectPreset(page, name) {
     await page.evaluate(() => document.fonts.ready);
     const selector = page.getByRole('button', { name: /^Variable preset:/ });

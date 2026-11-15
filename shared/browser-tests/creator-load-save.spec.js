@@ -1,8 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { backToEditor } from './helpers.js';
+import { backToEditor, sharedJson } from './helpers.js';
 
-const sample = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
+const sample = sharedJson('definitions/creator-load-save.json');
 async function title(page, value) {
     const input = page.getByRole('textbox', { name: 'Survey Title', exact: true });
     await input.fill(value);
@@ -88,8 +87,8 @@ test('save failures retain edits, retry saves them, and restore sample persists 
     await expect.poll(() => saved.title).toBe(sample.title);
 });
 
-test('Bob can open the saved form before and after denied edits without a save retry', async ({ context, page }) => {
-    await context.addCookies([{ name: 'demo_user', value: 'bob', url: 'http://127.0.0.1:8000' }]);
+test('Bob can open the saved form before and after denied edits without a save retry', async ({ baseURL, context, page }) => {
+    await context.addCookies([{ name: 'demo_user', value: 'bob', url: baseURL }]);
     let writes = 0;
     await context.route('**/api/forms/support', route => {
         if (route.request().method() === 'GET') return route.fulfill({ json: { definition: sample } });
