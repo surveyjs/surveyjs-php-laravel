@@ -7,6 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "ext-fileinfo": "*",
+        "ext-pdo_sqlite": "*",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "workerman/workerman": "^5.2"
@@ -49,7 +51,7 @@
         ],
         "start": [
             "Composer\\Config::disableProcessTimeout",
-            "@php -d upload_max_filesize=10M -d post_max_size=12M -S 127.0.0.1:8000 -t public server.php"
+            "@php artisan surveyjs:serve"
         ],
         "relay": [
             "Composer\\Config::disableProcessTimeout",

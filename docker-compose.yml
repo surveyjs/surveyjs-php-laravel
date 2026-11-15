@@ -5,6 +5,10 @@
 #
 # Settings come from your shell or from .env; see .env.example.
 
+# One project name for every checkout, so a second clone or worktree manages these containers instead of
+# starting a second surveyjs service that fails on port 3010
+name: surveyjs-php
+
 x-app-environment: &app-environment
     DB_DATABASE: /app/storage/database.sqlite
     SURVEYJS_SERVICE_URL: http://surveyjs:3000

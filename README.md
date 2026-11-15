@@ -9,7 +9,7 @@ This is the PHP code behind [Integrate SurveyJS with PHP](https://surveyjs.io/do
 
 ## Run it
 
-You need PHP 8.3 or later (with `pdo_sqlite` and `fileinfo`), Composer, and Node.js 22 or later. Use at least 8.3.36, 8.4.27 or 8.5.12: earlier releases are open to remote code execution (CVE-2026-109618, CVE-2026-109619).
+You need PHP 8.3 or later (with `pdo_sqlite` and `fileinfo`), Composer, and Node.js 22 or later (see [Prerequisites](#prerequisites)).
 
 ```bash
 git clone https://github.com/surveyjs/surveyjs-php-laravel.git
@@ -24,7 +24,49 @@ While you work on the code, run `composer dev` instead of `composer start`: it s
 - **Run Server-Side Workflows** (validate, lint, PDF, extract) needs the SurveyJS service, which runs in Docker: `docker compose up -d surveyjs` publishes it on `http://localhost:3010`. Then set `VALIDATE_RESPONSES=true` and `LINT_DEFINITIONS=true` in `.env` to switch Validate Responses and Lint JSON Schemas on.
 - Everything in containers: `docker compose up --build` runs the app on port 8000, both relays, the scheduler and the service (see [Docker](#docker)).
 
-`composer start` runs PHP's built-in server with upload limits that fit 5 MB files (`php artisan serve` starts a child process that doesn't inherit `-d` flags). See `server.php`.
+`composer start` runs `php artisan surveyjs:serve`, and `composer dev` uses the same command for its server. It checks that the port is free, prints the folder it serves and its `<branch>@<commit>`, and starts PHP's built-in server with upload limits that fit 5 MB files (`php artisan serve` starts a child process that doesn't inherit `-d` flags; see `server.php`).
+
+### Prerequisites
+
+- PHP 8.3 or later with the `pdo_sqlite` and `fileinfo` extensions: `composer install` names a missing one. Use at least 8.3.36, 8.4.27 or 8.5.12: earlier releases are open to remote code execution (CVE-2026-109618, CVE-2026-109619).
+- Composer.
+- Node.js 22 or later: `npm install` refuses an older one (`engines` in `package.json`, `engine-strict` in `.npmrc`).
+- Docker, only for Run Server-Side Workflows.
+
+On Windows:
+
+- PHP for Windows is a zip from [windows.php.net](https://windows.php.net/download/) (the x64 Non Thread Safe build). Unzip it to `C:\php`, copy `php.ini-development` to `php.ini`, and in `php.ini` enable `extension_dir = "ext"` and the extensions `curl`, `fileinfo`, `mbstring`, `openssl`, `pdo_sqlite` and `zip` (Composer needs `openssl` and `zip`). Add `C:\php` to your user `PATH`. Composer's Windows installer adds `composer` to `PATH` and finds PHP there.
+- After changing `PATH`, restart your editor, not only its terminal: VS Code's terminals inherit VS Code's environment. To refresh the current PowerShell terminal instead:
+
+  ```powershell
+  $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
+  ```
+
+- Check with `php -v`, `php -m` (it must list `pdo_sqlite` and `fileinfo`), `composer --version` and `node -v`.
+- Windows has no `pcntl` or `posix`. The relays don't need them: Workerman runs one process per relay there.
+
+Every port can be changed: the app `8000` (`APP_PORT`), the fill relay `8081` (`RELAY_PORT`), the edit relay `8082` (`EDIT_RELAY_PORT`), the SurveyJS service `3010` (`docker-compose.override.yml`) and the AI stub of the contract test `3020` (`AI_STUB_PORT`). On Windows, a second server can start on a port that is already in use and report success while the first one keeps answering, so `composer start`, `composer dev`, `composer relay` and `composer edit-relay` check first and stop with "Port 8000 is already in use. Another copy of this app (another checkout or branch?) may be running. Stop it, or set APP_PORT."
+
+### Stop everything
+
+`Ctrl+C` in each terminal, and `docker compose down` for the service. To find a server left running in another terminal or checkout:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8000,8081,8082 -State Listen | Select-Object LocalPort, OwningProcess
+Stop-Process -Id <OwningProcess>
+```
+
+```bash
+lsof -i :8000 -i :8081 -i :8082
+kill <PID>
+```
+
+### Run a branch or a PR
+
+- Check the branch out in its own folder, with `git worktree add ../surveyjs-php-laravel-pr <branch>` (for a pull request, `git fetch origin pull/<number>/head:pr-<number>` first) or a second clone, and run `composer setup` there. `vendor/`, `node_modules/`, `.env`, `database/database.sqlite` and `public/build/` belong to each checkout. Git checks a branch out in one folder at a time, so the PR runs from its own folder, not from the main one.
+- Run one checkout on the default ports at a time: stop the other one first, or set `APP_PORT`, `RELAY_PORT` and `EDIT_RELAY_PORT` (and `APP_URL`) in the second checkout's `.env`. `npm run test:browser` reads `APP_PORT` from the shell, not from `.env`.
+- The SurveyJS service is shared: `docker-compose.yml` has a fixed project name (`surveyjs-php`), so every checkout manages the same containers.
+- The page says which checkout answered: "Running `<branch>@<commit>`" under the catalog's footer buttons and at the end of every example's Description panel.
 
 ## Docker
 
@@ -68,9 +110,11 @@ Copy `.env.example` to `.env` (`composer setup` does it). Besides Laravel's own 
 | `LINT_DEFINITIONS` | `false` | Lint JSON Schemas: `routes/examples/lint-definition.php` replaces the PUT in `creator-load-save.php`. |
 | `SURVEYJS_AI_PROVIDER`, `SURVEYJS_AI_MODEL`, `SURVEYJS_OLLAMA_BASE_URL`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` | empty | Extract Responses from Documents: the AI provider the service extracts with (`openai`, `anthropic` or `ollama`). Docker Compose passes them to the service. |
 | `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` | OpenAI, empty, `gpt-4o-mini` | Translate with AI: any OpenAI-compatible `/chat/completions` endpoint for machine translation. Without a key, `/api/translate` answers `501`. |
+| `APP_PORT` | `8000` | Where `composer start` and `composer dev` serve the app. |
 | `RELAY_PORT`, `EDIT_RELAY_PORT` | `8081`, `8082` | Where the relays listen. |
 | `RELAY_URL`, `EDIT_RELAY_URL` | empty | The relay origin the pages use when a proxy serves the relays, for example `wss://example.com`: the pages add `/ws/rooms/<id>` and `/ws/forms/<id>`. Empty means this host on the ports above. |
 | `DEMO_MODE` | `false` | The hosted demo's visitor sandboxes (below). |
+| `SURVEYJS_BUILD` | set by `surveyjs:serve` | The `<branch>@<commit>` the pages show as "Running …". Hosted demos set it at deploy; unset, the line is left out. |
 
 Code reads these through `config/surveyjs.php`, never with `env()`, so `php artisan config:cache` works.
 
@@ -189,4 +233,4 @@ These examples must not be used as a real service as they are. They don't cover 
 - `Gate::define('edit-forms')` and `Gate::define('read-file')` in `app/Providers/AppServiceProvider.php`: who may save definitions and presets, and who may read an uploaded file.
 - `app/Http/Middleware/DemoUser.php`: the demo-user switch stands in for your session guard or Sanctum. The relays check the same cookie in `FillRelay::user()` and `EditRelay::editor()`.
 
-When you copy a step into your app, leave out the demo-only files: `app/Http/Middleware/DemoUser.php`, `DemoSandbox.php` and `DemoCacheHeader.php` (and their lines in `bootstrap/app.php`), `app/Support/Demo.php`, `app/Support/Sandbox.php`, `app/Relay/RoomKey.php`'s sandbox helpers, `app/Console/Commands/DemoPrune.php`, `routes/web.php`, `resources/views/`, `shared/ui/` (the page frame, its tabs and highlighting, the fonts and site images), and `shared/client/host.js` (its `mountSurvey()` is one line: `renderSurvey(survey, element)` from `survey-js-ui`). The Tailwind adapter is optional: an app without Tailwind leaves out `resources/css/surveyjs-tailwind-adapter.css` and, with it, the demo's own layer that `resources/css/survey.css` imports from `shared/ui/survey-overrides.css`.
+When you copy a step into your app, leave out the demo-only files: `app/Http/Middleware/DemoUser.php`, `DemoSandbox.php` and `DemoCacheHeader.php` (and their lines in `bootstrap/app.php`), `app/Support/Demo.php`, `app/Support/Sandbox.php`, `app/Relay/RoomKey.php`'s sandbox helpers, `app/Console/Commands/DemoPrune.php`, `routes/web.php`, `resources/views/`, `shared/ui/` (the page frame, its tabs and highlighting, the fonts and site images), and `shared/client/host.js` (its `mountSurvey()` is one line: `renderSurvey(survey, element)` from `survey-js-ui`). The Tailwind adapter is optional: an app without Tailwind leaves out the `survey-core/themes/adapters/tailwind4.css` imports in `resources/css/survey.css`, `creator.css` and `dashboard.css` and, with them, the demo's own layer that `resources/css/survey.css` imports from `shared/ui/survey-overrides.css`.

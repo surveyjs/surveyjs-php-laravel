@@ -126,6 +126,10 @@
                 <a class="{{ $footerButton }} bg-sjs text-white hover:bg-sjs-dim" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples</a>
                 <a class="{{ $footerButton }} bg-sjs-15 text-sjs-fg hover:bg-sjs-15-dim" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases</a>
             </div>
+            {{-- Which checkout answered: set by surveyjs:serve, or at deploy (README: Run a branch or a PR) --}}
+            @if (filled($build = config('surveyjs.build')))
+                <p class="-mt-8 mb-0 text-xs text-gray-400 md:-mt-12">Running {{ $build }}</p>
+            @endif
         </div>
     </div>
 </main>

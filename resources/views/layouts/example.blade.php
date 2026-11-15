@@ -111,6 +111,11 @@
                 @if ($commercial)
                     <p class="text-sm text-gray-600">SurveyJS commercial products require a developer license for production use. See <a class="text-sjs-dark underline" href="https://surveyjs.io/licensing" target="_blank" rel="noopener">SurveyJS Licensing</a> for details.</p>
                 @endif
+
+                {{-- Which checkout answered: set by surveyjs:serve, or at deploy (README: Run a branch or a PR) --}}
+                @if (filled($build = config('surveyjs.build')))
+                    <p class="text-xs text-gray-400">Running {{ $build }}</p>
+                @endif
             </div>
 
             {{-- REQUESTS: read-outs and notes (bounded, the newest note on top), then the log, which scrolls --}}
