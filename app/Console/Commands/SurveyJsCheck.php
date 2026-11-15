@@ -16,7 +16,7 @@ class SurveyJsCheck extends Command
 {
     protected $signature = 'surveyjs:check
         {--complete : Also require all 18 steps of the page in the manifest}
-        {--write-sums : Rewrite shared/SHA256SUMS (only while shared/ is a draft created in this repository)}';
+        {--write-sums : Rewrite shared/SHA256SUMS (only in the source repository, whose shared/UPSTREAM starts with source:)}';
 
     protected $description = 'Check the manifest, the snippet regions, shared/ and the SurveyJS versions';
 
@@ -79,8 +79,11 @@ class SurveyJsCheck extends Command
         $actual = $files->mapWithKeys(fn (string $path) => [$path => hash_file('sha256', base_path('shared/'.$path))]);
 
         if ($this->option('write-sums')) {
-            if (! str_starts_with((string) @file_get_contents(base_path('shared/UPSTREAM')), 'draft:')) {
-                $this->errors[] = 'shared/ is copied from surveyjs-nodejs: change it there, not here';
+            // shared/ is edited only in the source repository (UPSTREAM "source: …"; "draft: …" before it was
+            // published). A copy's UPSTREAM names the source commit it came from: a fix goes there.
+            $upstream = trim((string) @file_get_contents(base_path('shared/UPSTREAM')));
+            if (! str_starts_with($upstream, 'source:') && ! str_starts_with($upstream, 'draft:')) {
+                $this->errors[] = "shared/ is a copy of {$upstream}: change it in the source repository, not here";
 
                 return;
             }
