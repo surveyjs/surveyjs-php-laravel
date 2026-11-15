@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-uploads.json', import.meta.url), 'utf8'));
+const definition = sharedJson('definitions/creator-uploads.json');
 
 for (const width of [1440, 1920]) {
     test(`upload and schema-save server code fit the Code panel at ${width}px`, async ({ page }) => {
@@ -9,8 +9,8 @@ for (const width of [1440, 1920]) {
         await page.route('**/api/forms/support-assets', route => route.fulfill({ json: { definition } }));
         await page.goto('/examples/creator-uploads#code');
         const code = page.locator('#panel-code');
-        await expect(code).toContainText("Route::post('/api/files'");
-        await expect(code).toContainText("Route::put('/api/forms/{id}'");
+        // The two server regions this example reuses, whatever language the platform shows them in
+        await expect(code.locator('[data-code-section] summary')).toContainText(['sjs:store-files.server', 'sjs:creator-load-save.server']);
         await code.locator('[data-definition-code] > summary').click();
         const overflow = await code.locator('pre').evaluateAll(elements => elements.map(element => ({
             width: element.clientWidth,

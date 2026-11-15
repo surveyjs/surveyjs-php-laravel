@@ -1,4 +1,4 @@
-{{-- Demo only: the frame around every step page (resources/js/page-tabs.js). A sticky header, then two columns:
+{{-- Demo only: the frame around every step page (shared/ui/page-tabs.js). A sticky header, then two columns:
      a side panel with Description (what to try), Requests and Data (what the server got and kept), and the main
      column with Demo (the action row and the component) and Code (the code that ran). From 768px the panel is docked
      on the left; narrower, it opens as a full-screen sheet. The explanation is in the docs; the integration code is
@@ -23,7 +23,7 @@
     <script>window.SURVEYJS_PAGE = {{ Js::from($config) }};</script>
     @yield('head')
     @fonts
-    @vite(['resources/css/app.css', "resources/css/{$theme}.css", 'resources/js/app.js', 'resources/js/page-tabs.js', $step['files']['client']])
+    @vite(['resources/css/app.css', "resources/css/{$theme}.css", 'node_modules/highlight.js/styles/github-dark.css', 'shared/ui/code-highlight.js', 'shared/ui/page-tabs.js', $step['files']['client']])
 </head>
 <body class="min-h-screen bg-gray-50 font-sans text-gray-800 antialiased">
 <header id="page-header" class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
@@ -110,6 +110,11 @@
 
                 @if ($commercial)
                     <p class="text-sm text-gray-600">SurveyJS commercial products require a developer license for production use. See <a class="text-sjs-dark underline" href="https://surveyjs.io/licensing" target="_blank" rel="noopener">SurveyJS Licensing</a> for details.</p>
+                @endif
+
+                {{-- Which checkout answered: set by surveyjs:serve, or at deploy (README: Run a branch or a PR) --}}
+                @if (filled($build = config('surveyjs.build')))
+                    <p class="text-xs text-gray-400">Running {{ $build }}</p>
                 @endif
             </div>
 

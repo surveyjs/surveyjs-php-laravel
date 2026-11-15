@@ -25,7 +25,7 @@
     $whiteButton = 'inline-block rounded-lg bg-white px-6 py-3 text-center text-base/6 font-semibold text-sjs-fg no-underline shadow-[inset_0_0_0_1px_var(--color-sjs-border)] hover:bg-sjs-back-gray';
     // Site Button, large from tablets up: the footer's primary and secondary brand buttons
     $footerButton = 'rounded-lg px-6 py-3 text-center text-base/6 font-semibold no-underline md:px-12 md:py-5 md:text-2xl/6';
-    // The footer's logos, by file (images/site/stack-*.svg)
+    // The footer's logos, by file (shared/ui/images/stack-*.svg)
     $stackLogos = ['nextjs', 'nodejs', 'aspnet', 'php', 'wordpress', 'model', 'postgresql', 'mongodb', 'python'];
     $solidUnderline = 'underline [text-decoration-skip-ink:none] [text-underline-position:from-font]';
     $column = 'mx-auto max-w-sjs-content px-4 md:px-6';
@@ -58,7 +58,7 @@
         @foreach ($heroLinks as $title => [$label, $icon])
             @continue(! $steps->has($title))
             <a class="flex flex-col items-start gap-6 rounded-3xl border border-sjs-line bg-white p-6 text-sjs-para-md text-sjs-fg no-underline hover:bg-sjs-back-gray" href="#{{ str($title)->slug() }}">
-                <span class="flex rounded-lg bg-sjs-10 p-2"><img src="{{ asset("images/site/icon-{$icon}.svg") }}" width="24" height="24" alt=""></span>
+                <span class="flex rounded-lg bg-sjs-10 p-2"><img src="{{ asset("shared/ui/images/icon-{$icon}.svg") }}" width="24" height="24" alt=""></span>
                 <span class="{{ $solidUnderline }}">{{ $label }}</span>
             </a>
         @endforeach
@@ -66,9 +66,9 @@
 
     <div class="{{ $column }} pt-12 pb-12 md:pb-16 xl:pb-24">
         <a class="flex items-center gap-3 rounded-xl border border-sjs-line bg-white p-3 text-sjs-title-sm font-bold text-sjs-fg no-underline hover:bg-sjs-back-gray md:rounded-3xl md:py-6 md:pr-5 md:pl-6 md:text-sjs-para-lg" href="{{ config('surveyjs.github') }}" target="_blank">
-            <img src="{{ asset('images/site/icon-github.svg') }}" width="40" height="40" alt="">
+            <img src="{{ asset('shared/ui/images/icon-github.svg') }}" width="40" height="40" alt="">
             <span class="flex-1">View on GitHub</span>
-            <img src="{{ asset('images/site/icon-chevron.svg') }}" width="40" height="40" alt="">
+            <img src="{{ asset('shared/ui/images/icon-chevron.svg') }}" width="40" height="40" alt="">
         </a>
     </div>
 
@@ -113,7 +113,7 @@
                 @foreach ([...$stackLogos, ...$stackLogos] as $logo)
                     {{-- Figma's cell: the ASP.NET art is shorter than it, the Python art smaller --}}
                     <span class="flex size-16 shrink-0 items-center justify-center md:size-20">
-                        <img src="{{ asset("images/site/stack-{$logo}.svg") }}" @class(['h-auto', 'w-[91.7%]' => $logo === 'python', 'w-full' => $logo !== 'python']) alt="">
+                        <img src="{{ asset("shared/ui/images/stack-{$logo}.svg") }}" @class(['h-auto', 'w-[91.7%]' => $logo === 'python', 'w-full' => $logo !== 'python']) alt="">
                     </span>
                 @endforeach
             </div>
@@ -126,6 +126,10 @@
                 <a class="{{ $footerButton }} bg-sjs text-white hover:bg-sjs-dim" href="https://surveyjs.io/backend-integration/examples" target="_blank">More Backend Examples</a>
                 <a class="{{ $footerButton }} bg-sjs-15 text-sjs-fg hover:bg-sjs-15-dim" href="https://surveyjs.io/use-cases" target="_blank">SurveyJS Use Cases</a>
             </div>
+            {{-- Which checkout answered: set by surveyjs:serve, or at deploy (README: Run a branch or a PR) --}}
+            @if (filled($build = config('surveyjs.build')))
+                <p class="-mt-8 mb-0 text-xs text-gray-400 md:-mt-12">Running {{ $build }}</p>
+            @endif
         </div>
     </div>
 </main>

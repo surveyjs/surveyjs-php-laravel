@@ -30,6 +30,11 @@ return [
         'anthropic_api_key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    // Running it locally: the port `composer start` serves on, and the checkout it serves (`<branch>@<commit>`), which
+    // surveyjs:serve sets and the pages show as "Running …". Hosted demos set SURVEYJS_BUILD at deploy.
+    'app_port' => (int) env('APP_PORT', 8000),
+    'build' => env('SURVEYJS_BUILD'),
+
     // The WebSocket relays run as their own processes
     'relay' => [
         'fill_port' => (int) env('RELAY_PORT', 8081),

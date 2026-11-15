@@ -326,6 +326,52 @@ class ExamplePagesTest extends TestCase
         $this->assertSame([], array_map('basename', $offending), 'Shared scripts must clone the templates the page provides');
     }
 
+    public static function sharedUiFiles(): array
+    {
+        return [
+            'page-tabs.js' => ['ui/page-tabs.js', 'text/javascript; charset=utf-8'],
+            'code-highlight.js' => ['ui/code-highlight.js', 'text/javascript; charset=utf-8'],
+            'theme.css' => ['ui/theme.css', 'text/css; charset=utf-8'],
+            'survey-overrides.css' => ['ui/survey-overrides.css', 'text/css; charset=utf-8'],
+            'fonts.css' => ['ui/fonts.css', 'text/css; charset=utf-8'],
+            'a font' => ['ui/fonts/lato/LatoLatin-Regular.woff2', 'font/woff2'],
+            'an image' => ['ui/images/logo-small.svg', 'image/svg+xml'],
+        ];
+    }
+
+    #[DataProvider('sharedUiFiles')]
+    public function test_shared_ui_is_served_for_the_import_map_platforms(string $path, string $type): void
+    {
+        $this->get("/shared/{$path}")->assertOk()->assertHeader('Content-Type', $type);
+    }
+
+    public function test_only_the_four_shared_folders_are_served(): void
+    {
+        foreach (['seed/forms.json', 'contract-tests/run.mjs', 'CONTRACT', '../.env', 'ui/../../.env', 'ui/missing.css'] as $path) {
+            $this->get("/shared/{$path}")->assertNotFound();
+        }
+    }
+
+    public function test_fonts_css_points_at_the_four_lato_files(): void
+    {
+        preg_match_all('~url\("([^"]+)"\)~', (string) file_get_contents(base_path('shared/ui/fonts.css')), $urls);
+        $this->assertCount(4, $urls[1]);
+        foreach ($urls[1] as $url) {
+            $this->get("/shared/ui/{$url}")->assertOk()->assertHeader('Content-Type', 'font/woff2');
+        }
+    }
+
+    public function test_the_pages_load_the_site_images_from_shared_ui(): void
+    {
+        $catalog = $this->withoutVite()->get('/')->assertOk()->getContent();
+        preg_match_all('~<img src="([^"]+\.svg)"~', $catalog, $images);
+        $this->assertNotEmpty($images[1]);
+        foreach (array_unique(array_map(fn (string $url) => parse_url($url, PHP_URL_PATH), $images[1])) as $image) {
+            $this->assertStringStartsWith('/shared/ui/images/', $image);
+            $this->get($image)->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
+        }
+    }
+
     private function between(string $html, string $from, string $to): string
     {
         $start = strpos($html, $from);

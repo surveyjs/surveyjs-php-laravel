@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/dashboard.json', import.meta.url), 'utf8'));
+const definition = sharedJson('definitions/dashboard.json');
 const response = { satisfaction: 4, recommend: 9, channel: 'Search', features: ['Forms'], improve: 'More examples' };
 
 function submitted(daysAgo) {

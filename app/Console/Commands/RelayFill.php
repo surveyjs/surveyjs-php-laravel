@@ -6,8 +6,11 @@ namespace App\Console\Commands;
 
 use App\Relay\FillRelay;
 use App\Relay\RoomKey;
+use App\Support\Build;
+use App\Support\PortCheck;
 use Closure;
 use Illuminate\Console\Command;
+use RuntimeException;
 use Throwable;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request;
@@ -26,6 +29,13 @@ class RelayFill extends Command
     public function handle(): int
     {
         $port = config('surveyjs.relay.fill_port');
+        try {
+            PortCheck::ensureFree($port, 'RELAY_PORT');   // on Windows, Workerman starts on a busy port and says nothing
+        } catch (RuntimeException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
         $relay = new FillRelay;
 
         TcpConnection::$defaultMaxPackageSize = 20 * 1024 * 1024;   // a large answer (a signature, a long text) fits in one frame
@@ -50,7 +60,7 @@ class RelayFill extends Command
         Worker::$pidFile = storage_path('framework/relay-fill.pid');
         Worker::$logFile = storage_path('logs/relay-fill.log');
         Worker::$command = 'start';   // Workerman reads its command from argv on Linux and macOS
-        $this->components->info("Fill relay listening on ws://0.0.0.0:{$port}/ws/rooms/{recordId}");
+        $this->components->info('Fill relay for '.base_path().Build::label()." listening on ws://0.0.0.0:{$port}/ws/rooms/{recordId}");
         Worker::runAll();
 
         return self::SUCCESS;

@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { backToEditor } from './helpers.js';
+import { backToEditor, sharedJson, sharedPath } from './helpers.js';
 
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-uploads.json', import.meta.url), 'utf8'));
-const image = { name: 'logo.png', mimeType: 'image/png', buffer: readFileSync(new URL('../../shared/samples/work-order-scan.png', import.meta.url)) };
+const definition = sharedJson('definitions/creator-uploads.json');
+const image = { name: 'logo.png', mimeType: 'image/png', buffer: readFileSync(sharedPath('samples/work-order-scan.png')) };
 async function mockStoredForms(target, getDefinition) {
     await target.route('**/demo/stored/creator-uploads*', route => route.fulfill({
         json: { forms: { key: 'support-assets', json: getDefinition() }, files: [] },

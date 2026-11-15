@@ -1,4 +1,4 @@
-# Two quick checks per step (tests/smoke/run.mjs): the step page loads, and its main endpoint answers
+# Two quick checks per step (shared/smoke/run.mjs): the step page loads, and its main endpoint answers
 # with the expected status. Weekly against a fresh local app with the service off (deterministic), on
 # demand, and from a release pipeline after a deploy:
 #
@@ -116,4 +116,4 @@ jobs:
 
       - name: Smoke test against ${{ env.BASE_URL }}
         if: env.BASE_URL != ''
-        run: node tests/smoke/run.mjs
+        run: node shared/smoke/run.mjs

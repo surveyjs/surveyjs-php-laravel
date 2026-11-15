@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedPath } from './helpers.js';
 
-const image = { name: 'receipt.png', mimeType: 'image/png', buffer: readFileSync(new URL('../../shared/samples/work-order-scan.png', import.meta.url)) };
+const image = { name: 'receipt.png', mimeType: 'image/png', buffer: readFileSync(sharedPath('samples/work-order-scan.png')) };
 
 async function uploadReceipt(page) {
     const chooser = page.waitForEvent('filechooser');

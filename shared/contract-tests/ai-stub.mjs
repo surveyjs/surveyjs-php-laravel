@@ -11,6 +11,8 @@
 //                            Expects the page's prompt: "Translate each string from <from> to <to>.
 //                            Return a JSON array in the same order." with the strings as a JSON array
 //                            in the last user message. Answers "[<to>] <string>" for each, in order.
+// GET /requests              how many POSTs each of the two paths has received, e.g. { "/api/chat": 1,
+//                            "/v1/chat/completions": 2 }: the contract test checks one provider call per request.
 //
 // It never calls out, logs request paths only, and answers 500 to anything it doesn't recognize,
 // so a change in the extractor's request format fails the test instead of passing silently.
@@ -66,12 +68,15 @@ function chatCompletions(body) {
 }
 
 const routes = { "/api/chat": ollamaChat, "/v1/chat/completions": chatCompletions };
+const requests = Object.fromEntries(Object.keys(routes).map((path) => [path, 0]));
 
 http.createServer((req, res) => {
   const path = new URL(req.url, "http://stub").pathname;
   console.log(`${req.method} ${path}`);
+  if (req.method === "GET" && path === "/requests") return send(res, 200, requests);
   const route = routes[path];
   if (req.method !== "POST" || !route) return send(res, 500, { error: `ai-stub: unexpected request ${req.method} ${path}` });
+  requests[path]++;
   const chunks = [];
   req.on("data", (c) => chunks.push(c));
   req.on("end", () => {

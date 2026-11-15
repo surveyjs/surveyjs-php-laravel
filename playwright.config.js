@@ -1,16 +1,24 @@
-// Browser tests for the step pages (tests/browser): what PHPUnit and the contract test can't see,
-// because they never run shared/client/host.js or resources/js/page-tabs.js. Chromium only.
+// Browser tests for the step pages: what PHPUnit and the contract test can't see, because they never run
+// shared/client/host.js or shared/ui/page-tabs.js. Chromium only.
 //
-//   npm run test:browser                     against composer dev (or composer start) on port 8000
-//   BASE_URL=http://127.0.0.1:9000 npm run test:browser
+//   shared/browser-tests/   the specs every platform runs (HTTP, the page DOM and the shared seed only)
+//   tests/browser/          specs only this app can run (none at the moment)
 //
-// Without a running app, Playwright starts PHP's built-in server on port 8000 itself.
+//   npm run test:browser                              migrates and seeds database/browser-tests.sqlite, then
+//                                                     composer start on APP_PORT (default 8000)
+//   BASE_URL=http://127.0.0.1:9000 npm run test:browser   against an app that is already running
+//
+// Outside CI, an app that already answers on APP_PORT is used as it is, with its own database.
+import { resolve } from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.BASE_URL ?? 'http://127.0.0.1:8000';
+const port = process.env.APP_PORT || '8000';
+const baseURL = process.env.BASE_URL ?? `http://127.0.0.1:${port}`;
+const database = resolve('database/browser-tests.sqlite');
 
 export default defineConfig({
-    testDir: 'tests/browser',
+    testDir: '.',
+    testMatch: ['shared/browser-tests/**/*.spec.js', 'tests/browser/**/*.spec.js'],
     workers: 1,   // PHP's built-in server answers one request at a time on Windows
     retries: process.env.CI ? 1 : 0,
     reporter: process.env.CI ? [['list'], ['github']] : 'list',
@@ -31,10 +39,12 @@ export default defineConfig({
             launchOptions: { args: ['--disable-features=LocalNetworkAccessChecks'] },
         },
     }],
-    webServer: {
-        command: 'php -d upload_max_filesize=10M -d post_max_size=12M -S 127.0.0.1:8000 -t public server.php',
+    webServer: process.env.BASE_URL ? undefined : {
+        // A fresh, seeded database every run: the specs expect the seed, not what earlier runs stored
+        command: `php -r "touch(getenv('DB_DATABASE'));" && php artisan migrate:fresh --seed --force && composer start`,
+        env: { DB_DATABASE: database, APP_PORT: port },
         url: `${baseURL}/up`,
-        reuseExistingServer: true,
-        timeout: 30_000,
+        reuseExistingServer: !process.env.CI,
+        timeout: 60_000,
     },
 });

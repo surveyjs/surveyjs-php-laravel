@@ -6,8 +6,11 @@ namespace App\Console\Commands;
 
 use App\Relay\EditRelay;
 use App\Relay\RoomKey;
+use App\Support\Build;
+use App\Support\PortCheck;
 use Closure;
 use Illuminate\Console\Command;
+use RuntimeException;
 use Throwable;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request;
@@ -26,6 +29,13 @@ class RelayEdit extends Command
     public function handle(): int
     {
         $port = config('surveyjs.relay.edit_port');
+        try {
+            PortCheck::ensureFree($port, 'EDIT_RELAY_PORT');   // on Windows, Workerman starts on a busy port and says nothing
+        } catch (RuntimeException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
         $relay = new EditRelay;
 
         TcpConnection::$defaultMaxPackageSize = 5 * 1024 * 1024;   // the reference relay's limit for one Creator record
@@ -50,7 +60,7 @@ class RelayEdit extends Command
         Worker::$pidFile = storage_path('framework/relay-edit.pid');
         Worker::$logFile = storage_path('logs/relay-edit.log');
         Worker::$command = 'start';   // Workerman reads its command from argv on Linux and macOS
-        $this->components->info("Edit relay listening on ws://0.0.0.0:{$port}/ws/forms/{formId}");
+        $this->components->info('Edit relay for '.base_path().Build::label()." listening on ws://0.0.0.0:{$port}/ws/forms/{formId}");
         Worker::runAll();
 
         return self::SUCCESS;

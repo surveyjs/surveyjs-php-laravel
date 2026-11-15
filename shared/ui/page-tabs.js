@@ -148,7 +148,7 @@ function setUpPageTabs() {
     panel.hidden = !open;
     panel.toggleAttribute("data-sheet", isSheet());
     // The sheet covers the page: the page doesn't scroll under it, and keyboard focus stays in it
-    document.documentElement.classList.toggle("overflow-hidden", isSheet());
+    document.documentElement.toggleAttribute("data-sheet-open", isSheet());
     header.inert = main.inert = isSheet();
     toggle.setAttribute("aria-expanded", String(open));
     if (showing("requests")) {

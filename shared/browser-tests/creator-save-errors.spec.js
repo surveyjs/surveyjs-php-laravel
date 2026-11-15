@@ -1,9 +1,9 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
 // A denied save shows the server's { error } in Creator's notification bar, after Creator's own
 // "not saved" message: the reason is the last thing the author reads.
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/creator-load-save.json', import.meta.url), 'utf8'));
+const definition = sharedJson('definitions/creator-load-save.json');
 const denied = "You don't have editor rights: only editors can change forms";
 const pages = [
     ['creator-load-save', '**/api/forms/support'],

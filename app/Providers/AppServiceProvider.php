@@ -34,7 +34,9 @@ class AppServiceProvider extends ServiceProvider
         // Real apps check ownership here, for example $file->owner_id === $user->id.
         Gate::define('read-file', fn (?User $user, object $file) => $user !== null);
 
-        // `composer dev` also starts the fill-together and edit-together relays next to the server, queue and Vite
+        // `composer dev` serves with surveyjs:serve (the port check, the upload limits, the build line) in place of
+        // `php artisan serve`, and also starts the fill-together and edit-together relays next to the queue and Vite
+        DevCommands::artisan('surveyjs:serve', 'server');
         DevCommands::artisan('relay:fill', 'relay');
         DevCommands::artisan('relay:edit', 'edit-relay');
     }

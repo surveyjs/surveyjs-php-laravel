@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { sharedJson } from './helpers.js';
 
-const definition = JSON.parse(readFileSync(new URL('../../shared/definitions/fill-together.json', import.meta.url), 'utf8'));
+const definition = sharedJson('definitions/fill-together.json');
 const init = (overrides = {}) => ({ type: 'init', clientId: 'client-1', name: 'Dispatcher', colorIndex: 1, seed: definition, values: {}, peers: [], sessionId: 'session-1', responseId: null, ...overrides });
 
 test('failed initial connection shows reconnect and blocks editing until the shared answers arrive', async ({ page }) => {
