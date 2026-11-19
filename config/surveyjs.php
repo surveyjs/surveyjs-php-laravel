@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-// Every SurveyJS and demo setting. Code reads config('surveyjs.…'), never env(),
-// because env() returns null once the configuration is cached.
+// Every SurveyJS and demo setting. This file is committed: change a default here, or override it in the environment.
+// The private keys (licence and AI keys) come from .env, which is git-ignored (see .env.example).
+// Code reads config('surveyjs.…'), never env(), because env() returns null once the configuration is cached.
 return [
 
     // Shown in the browser: setLicenseKey() runs only when it is set
@@ -21,7 +22,9 @@ return [
         'model' => env('AI_MODEL', 'gpt-4o-mini'),
     ],
 
-    // extract-from-paper: read only to pass them to the SurveyJS service in Docker Compose
+    // extract-from-paper: the SurveyJS service's AI provider (openai, anthropic or ollama); the page reads them only to
+// show or hide its banner. docker compose can't read this file: it passes the service SURVEYJS_AI_* from the shell or
+// .env, and the keys from .env
     'extraction' => [
         'provider' => env('SURVEYJS_AI_PROVIDER'),
         'model' => env('SURVEYJS_AI_MODEL'),
@@ -57,5 +60,5 @@ return [
 
     // The Server Integration docs. Step pages link to <docs>#<anchor> (anchor: surveyjs-integration.json).
     // Change it here when the docs move; nothing else holds this URL.
-    'docs' => 'https://surveyjs.io/documentation/backend-integration-php',
+    'docs' => 'https://surveyjs.io/documentation/backend-integration-laravel',
 ];

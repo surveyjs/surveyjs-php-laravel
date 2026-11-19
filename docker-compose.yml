@@ -3,7 +3,8 @@
 #   docker compose up --build        → http://localhost:8000 (relays on 8081 and 8082)
 #   docker compose up -d surveyjs    → only the service, on http://localhost:3010 (see docker-compose.override.yml)
 #
-# Settings come from your shell or from .env; see .env.example.
+# Every setting but the private keys comes from config/ in the image (rebuild after changing it: `docker compose up
+# --build`). The private keys come from your shell or from .env (see .env.example).
 
 # One project name for every checkout, so a second clone or worktree manages these containers instead of
 # starting a second surveyjs service that fails on port 3010
@@ -13,15 +14,9 @@ x-app-environment: &app-environment
     DB_DATABASE: /app/storage/database.sqlite
     SURVEYJS_SERVICE_URL: http://surveyjs:3000
     SURVEYJS_LICENSE_KEY: ${SURVEYJS_LICENSE_KEY:-}
-    VALIDATE_RESPONSES: ${VALIDATE_RESPONSES:-false}
-    LINT_DEFINITIONS: ${LINT_DEFINITIONS:-false}
-    AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
     AI_API_KEY: ${AI_API_KEY:-}
-    AI_MODEL: ${AI_MODEL:-gpt-4o-mini}
-    DEMO_MODE: ${DEMO_MODE:-false}
-    RELAY_URL: ${RELAY_URL:-}                           # set both when a proxy serves the relays (README: Behind a proxy)
-    EDIT_RELAY_URL: ${EDIT_RELAY_URL:-}
-    SURVEYJS_AI_PROVIDER: ${SURVEYJS_AI_PROVIDER:-}     # only to tell the extract-from-paper page whether extraction is configured
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}                 # only to tell the extract-from-paper page whether extraction is configured
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
 
 services:
     app:                        # your backend: this Laravel app (migrates and seeds on start)

@@ -28,7 +28,8 @@ COPY --from=assets /app/public/build public/build
 RUN composer dump-autoload --optimize --no-dev \
     && php artisan package:discover
 
-# Production settings: real environment variables win over the .env that CMD copies from .env.example.
+# Production settings: real environment variables win over the defaults in config/ and over the .env that CMD copies
+# from .env.example (only the app key, which CMD generates).
 # Logs go to `docker compose logs`. PHP_CLI_SERVER_WORKERS (read from the process environment, not .env)
 # lets the built-in server answer other visitors while extract-from-paper (up to 120 s), server-pdf or ai-translation (60 s) waits.
 ENV APP_ENV=production APP_DEBUG=false LOG_CHANNEL=stderr PHP_CLI_SERVER_WORKERS=4

@@ -7,8 +7,9 @@
 @section('banner')
     @unless (config('surveyjs.extraction.provider') || config('surveyjs.extraction.openai_api_key') || config('surveyjs.extraction.anthropic_api_key'))
         <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            <strong>Document extraction is unavailable.</strong> Configure <code>SURVEYJS_AI_PROVIDER</code> (<code>openai</code>, <code>anthropic</code> or <code>ollama</code>) and its key or
-            <code>SURVEYJS_OLLAMA_BASE_URL</code> in <code>.env</code>, then run <code>docker compose up -d surveyjs</code>.
+            <strong>Document extraction is unavailable.</strong> Set the AI provider's key (<code>OPENAI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code>) in <code>.env</code>,
+            or, for Ollama, <code>SURVEYJS_AI_PROVIDER=ollama</code> and <code>SURVEYJS_OLLAMA_BASE_URL</code> in <code>.env</code> (for the service) and in <code>config/surveyjs.php</code>,
+            then run <code>docker compose up -d surveyjs</code>.
         </p>
     @endunless
 @endsection
