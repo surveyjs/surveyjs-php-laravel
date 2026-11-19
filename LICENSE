@@ -1,10 +1,21 @@
-This demo illustrates a basic integration between a PHP backend and a sample React application that includes SurveyJS Survey Creator and Form Library.
+MIT License
 
-SurveyJS Form Library is available under the MIT license.
+Copyright (c) 2015-2026 Devsoft Baltic OÜ - https://surveyjs.io/
 
-Survey Creator is proprietary software. You can integrate it and evaluate its functionality without a license. Production use requires a commercial license for each developer who works with the SurveyJS APIs or implements the integration.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-For full licensing details, please refer to the SurveyJS Licensing FAQ and End-User License Agreement (EULA):
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-- https://surveyjs.io/faq#licensing
-- https://surveyjs.io/Developer-License-Agreement.pdf
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

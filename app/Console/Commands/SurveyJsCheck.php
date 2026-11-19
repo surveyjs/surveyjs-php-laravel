@@ -207,7 +207,7 @@ class SurveyJsCheck extends Command
             array_map(fn ($markdown, $angle) => $markdown ?: $angle, $matches[1], $matches[2]),
             fn (string $url) => str_starts_with($url, $docs)
                 || (preg_replace('/^www\./', '', (string) parse_url($url, PHP_URL_HOST)) === 'surveyjs.io'
-                    && preg_match('~^(/documentation)?/backend-integration~', (string) parse_url($url, PHP_URL_PATH))),
+                    && preg_match('~^(/documentation)?/backend-integration(?!/examples)~', (string) parse_url($url, PHP_URL_PATH))),
         ));
         $wrong = array_filter($links, fn (string $url) => $url !== $docs);
 

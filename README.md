@@ -5,6 +5,7 @@ This is the PHP code behind [Integrate SurveyJS with PHP](https://surveyjs.io/do
 - Live catalog: [surveyjs-php.demos.surveyjs.io](https://surveyjs-php.demos.surveyjs.io)
 - The docs: [surveyjs.io/documentation/backend-integration-laravel](https://surveyjs.io/documentation/backend-integration-laravel)
 - SurveyJS demos: [app.demos.surveyjs.io](https://app.demos.surveyjs.io)
+- Backend integration examples on the SurveyJS website: [surveyjs.io/backend-integration/examples](https://surveyjs.io/backend-integration/examples)
 - The same examples for other platforms: [ASP.NET Core](https://github.com/surveyjs/surveyjs-aspnet-core), [Node.js (Express)](https://github.com/surveyjs/surveyjs-nodejs-express), [Python (FastAPI)](https://github.com/surveyjs/surveyjs-python-fastapi), [Next.js](https://github.com/surveyjs/surveyjs-nextjs), [Java (Spring Boot)](https://github.com/surveyjs/surveyjs-java-spring-boot)
 
 ## Run it
@@ -238,3 +239,9 @@ These examples must not be used as a real service as they are. They don't cover 
 - `app/Http/Middleware/DemoUser.php`: the demo-user switch stands in for your session guard or Sanctum. The relays check the same cookie in `FillRelay::user()` and `EditRelay::editor()`.
 
 When you copy a step into your app, leave out the demo-only files: `app/Http/Middleware/DemoUser.php`, `DemoSandbox.php` and `DemoCacheHeader.php` (and their lines in `bootstrap/app.php`), `app/Support/Demo.php`, `app/Support/Sandbox.php`, `app/Relay/RoomKey.php`'s sandbox helpers, `app/Console/Commands/DemoPrune.php`, `routes/web.php`, `resources/views/`, `shared/ui/` (the page frame, its tabs and highlighting, the fonts and site images), and `shared/client/host.js` (its `mountSurvey()` is one line: `renderSurvey(survey, element)` from `survey-js-ui`). The Tailwind adapter is optional: an app without Tailwind leaves out the `survey-core/themes/adapters/tailwind4.css` imports in `resources/css/survey.css`, `creator.css` and `dashboard.css` and, with them, the demo's own layer that `resources/css/survey.css` imports from `shared/ui/survey-overrides.css`.
+
+## Licence
+
+The code in this repository is available under the [MIT licence](LICENSE).
+
+The steps use SurveyJS Form Library, which is MIT-licensed as well. The steps marked "Commercial" in the Licence column above also use SurveyJS Survey Creator, Dashboard or PDF Generator, which are commercial products. You can integrate them and evaluate their functionality without a licence. Production use requires a developer licence for each developer who works with the SurveyJS APIs or implements the integration. See the [SurveyJS Licensing FAQ](https://surveyjs.io/faq#licensing) and the [End-User License Agreement](https://surveyjs.io/Developer-License-Agreement.pdf).
