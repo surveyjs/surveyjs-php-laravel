@@ -23,8 +23,8 @@ return [
     ],
 
     // extract-from-paper: the SurveyJS service's AI provider (openai, anthropic or ollama); the page reads them only to
-// show or hide its banner. docker compose can't read this file: it passes the service SURVEYJS_AI_* from the shell or
-// .env, and the keys from .env
+    // show or hide its banner. docker compose can't read this file: it passes the service SURVEYJS_AI_* from the shell or
+    // .env, and the keys from .env
     'extraction' => [
         'provider' => env('SURVEYJS_AI_PROVIDER'),
         'model' => env('SURVEYJS_AI_MODEL'),
